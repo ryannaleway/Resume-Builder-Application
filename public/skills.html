@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Skills</title>
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="page-shell" id="pageInteractionShell">
+    <nav class="navbar navbar-expand-lg bg-white border-bottom no-print">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="/">Resume Builder</a>
+        <div class="navbar-nav ms-auto">
+          <a class="nav-link" href="/">Dashboard</a>
+          <a class="nav-link" href="/jobs">Manage Jobs</a>
+          <a class="nav-link active" href="/skills">Manage Skills</a>
+          <a class="nav-link" href="/credentials">Certifications & Awards</a>
+          <a class="nav-link" href="/builder">Resume Builder</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container py-5">
+      <div id="globalAlert" aria-live="polite"></div>
+      <header class="mb-4">
+        <p class="text-uppercase text-primary fw-semibold mb-2">Manage Skills</p>
+        <h1 class="display-6 fw-bold">Organize skills so each resume can emphasize the right strengths.</h1>
+      </header>
+
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <div id="skillsAlert" aria-live="polite"></div>
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+              <h2 class="h4">Skill category</h2>
+              <form id="categoryForm">
+                <div class="mb-3">
+                  <label class="form-label" for="categoryName">Category name</label>
+                  <input class="form-control" id="categoryName" aria-label="Skill category name" required>
+                </div>
+                <button class="btn btn-primary" id="categorySubmitButton" type="submit">Save Category</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+              <h2 class="h4">Skill</h2>
+              <form id="skillForm">
+                <div class="mb-3">
+                  <label class="form-label" for="skillCategoryId">Category</label>
+                  <select class="form-select" id="skillCategoryId" aria-label="Skill category selection" required></select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="skillName">Skill name</label>
+                  <input class="form-control" id="skillName" aria-label="Skill name" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="skillProficiency">Proficiency</label>
+                  <input class="form-control" id="skillProficiency" aria-label="Skill proficiency">
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button class="btn btn-primary" id="skillSubmitButton" type="submit">Save Skill</button>
+                  <button class="btn btn-outline-success" id="skillSuggestionButton" type="button">AI Improve Skill</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+              <h2 class="h4">Categories</h2>
+              <ul class="list-group" id="categoryList" aria-live="polite"></ul>
+            </div>
+          </div>
+
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+              <h2 class="h4">Skills</h2>
+              <ul class="list-group" id="skillList" aria-live="polite"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="modal fade" id="suggestionModal" tabindex="-1" aria-labelledby="suggestionModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="suggestionModalLabel">AI Suggestions</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close suggestion modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label" for="inlineGeminiApiKey">Optional Gemini API key for this request</label>
+              <input class="form-control" id="inlineGeminiApiKey" aria-label="Temporary Gemini API key">
+            </div>
+            <div id="suggestionsList" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/suggestions.js"></script>
+  <script src="/js/skills.js"></script>
+</body>
+</html>

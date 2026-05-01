@@ -1,0 +1,65 @@
+body {
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+}
+
+.page-shell {
+  min-height: 100vh;
+}
+
+.resume-paper {
+  background: #ffffff;
+  box-shadow: 0 1rem 3rem rgba(15, 23, 42, 0.12);
+}
+
+.resume-heading {
+  border-bottom: 2px solid #0d6efd;
+}
+
+.selection-panel {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.suggestion-card {
+  border-left: 4px solid #198754;
+}
+
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .resume-paper {
+    box-shadow: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  main,
+  .container,
+  .container-fluid,
+  .row,
+  .col,
+  .col-lg-5,
+  .col-lg-7,
+  .col-xl-4,
+  .col-xl-8 {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Builder Dashboard</title>
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="page-shell" id="pageInteractionShell">
+    <nav class="navbar navbar-expand-lg bg-white border-bottom no-print">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="/">Resume Builder</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link active" href="/">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="/jobs">Manage Jobs</a></li>
+            <li class="nav-item"><a class="nav-link" href="/skills">Manage Skills</a></li>
+            <li class="nav-item"><a class="nav-link" href="/credentials">Certifications & Awards</a></li>
+            <li class="nav-item"><a class="nav-link" href="/builder">Resume Builder</a></li>
+            <li class="nav-item"><a class="nav-link" href="/preview">Resume Preview</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container py-5">
+      <div id="dashboardAlert" aria-live="polite"></div>
+      <header class="mb-5">
+        <p class="text-uppercase text-primary fw-semibold mb-2">Dashboard</p>
+        <h1 class="display-5 fw-bold">Build polished resumes from reusable career content.</h1>
+        <p class="lead mb-0">Store work history, skills, certifications, and awards once, then mix and match the strongest content for each opportunity.</p>
+      </header>
+
+      <section class="row g-4 mb-5">
+        <div class="col-md-6 col-xl-3">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <p class="text-uppercase text-body-secondary small mb-2">Jobs</p>
+              <p class="display-6 fw-bold mb-0" id="jobCount">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <p class="text-uppercase text-body-secondary small mb-2">Skills</p>
+              <p class="display-6 fw-bold mb-0" id="skillCount">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <p class="text-uppercase text-body-secondary small mb-2">Certifications</p>
+              <p class="display-6 fw-bold mb-0" id="certificationCount">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <p class="text-uppercase text-body-secondary small mb-2">Awards</p>
+              <p class="display-6 fw-bold mb-0" id="awardCount">0</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="row g-4">
+        <div class="col-lg-7">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+              <h2 class="h4">Suggested workflow</h2>
+              <ol class="mb-0">
+                <li class="mb-2">Add jobs and break each role into accomplishment-focused responsibilities.</li>
+                <li class="mb-2">Organize skills into categories that are easy to scan.</li>
+                <li class="mb-2">Save certifications, awards, and your Gemini API key.</li>
+                <li class="mb-0">Use the builder page to assemble a targeted resume and preview the print-friendly result.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+              <h2 class="h4">Recent jobs</h2>
+              <ul class="list-group list-group-flush" id="recentContent" aria-live="polite"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
