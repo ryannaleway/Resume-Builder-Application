@@ -33,6 +33,7 @@ const fnStartServer = async () => {
   cApp.use('/api/settings', require('./routes/settingRoutes'));
   cApp.use('/api/resumes', require('./routes/resumeRoutes'));
   cApp.use('/api/ai', require('./routes/aiRoutes'));
+  cApp.use('/api/auth', require('./routes/authRoutes'));
 
   // Route the page URLs to static HTML files to keep the project easy to follow
   // for beginners without introducing a template engine.
@@ -58,6 +59,10 @@ const fnStartServer = async () => {
 
   cApp.get('/preview', (cRequest, cResponse) => {
     cResponse.sendFile(path.join(__dirname, 'public', 'preview.html'));
+  });
+
+  cApp.get('/auth', (cRequest, cResponse) => {
+    cResponse.sendFile(path.join(__dirname, 'public', 'auth.html'));
   });
 
   cApp.use(fnHandleError);

@@ -12,6 +12,7 @@ const fnParseSelectionIds = (vValue) => {
 
 const fnGenerateResume = fnAsyncHandler(async (cRequest, cResponse) => {
   const aResume = await fnBuildResumeData({
+    nUserId: cRequest.query.userId ? fnParseIdArray(cRequest.query.userId)[0] || null : null,
     aJobIds: fnParseSelectionIds(cRequest.query.jobIds),
     aResponsibilityIds: fnParseSelectionIds(cRequest.query.responsibilityIds),
     aSkillIds: fnParseSelectionIds(cRequest.query.skillIds),

@@ -70,6 +70,16 @@ const fnInitializeDatabase = async () => {
   await fnExec('PRAGMA foreign_keys = ON;');
 
   await fnExec(`
+    CREATE TABLE IF NOT EXISTS users (
+      userId INTEGER PRIMARY KEY AUTOINCREMENT,
+      firstName TEXT NOT NULL,
+      lastName TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      passwordHash TEXT NOT NULL,
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS jobs (
       jobId INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,

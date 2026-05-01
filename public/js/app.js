@@ -1,4 +1,5 @@
 const oAppState = {
+  oCurrentUser: null,
   aJobs: [],
   aResponsibilities: [],
   aSkillCategories: [],
@@ -14,6 +15,46 @@ const oAppState = {
   }
 };
 
+const fnGetCurrentUser = () => {
+  const cStoredUser = localStorage.getItem('resumeBuilderCurrentUser');
+
+  if (!cStoredUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(cStoredUser);
+  } catch (cError) {
+    return null;
+  }
+};
+
+const fnSetCurrentUser = (oUser) => {
+  oAppState.oCurrentUser = oUser;
+  localStorage.setItem('resumeBuilderCurrentUser', JSON.stringify(oUser));
+};
+
+const fnClearCurrentUser = () => {
+  oAppState.oCurrentUser = null;
+  localStorage.removeItem('resumeBuilderCurrentUser');
+};
+
+const fnShowToast = (cTitle, cIcon = 'success') => {
+  if (typeof Swal === 'undefined') {
+    return;
+  }
+
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2500,
+    timerProgressBar: true,
+    icon: cIcon,
+    title: cTitle
+  });
+};
+
 const fnShowAlert = (cContainerId, cMessage, cVariant = 'success') => {
   const cContainer = document.getElementById(cContainerId);
 
@@ -26,6 +67,8 @@ const fnShowAlert = (cContainerId, cMessage, cVariant = 'success') => {
       ${cMessage}
     </div>
   `;
+
+  fnShowToast(cMessage, cVariant === 'danger' ? 'error' : cVariant === 'warning' ? 'warning' : 'success');
 };
 
 const fnClearAlert = (cContainerId) => {
@@ -108,6 +151,7 @@ const fnEscapeHtml = (cValue) => {
 
 const fnBuildResumeMarkup = (oResume) => {
   const oProfile = oResume.profile || {};
+  const oUser = oResume.user || {};
   const aJobMarkup = oResume.jobs.map((oJob) => {
     const cResponsibilitiesMarkup = oJob.responsibilities.map((oResponsibility) => {
       return `<li class="mb-2">${fnEscapeHtml(oResponsibility.description)}</li>`;
@@ -161,7 +205,9 @@ const fnBuildResumeMarkup = (oResume) => {
   return `
     <article class="resume-paper rounded-4 p-4 p-lg-5 mx-auto" aria-label="Resume preview document">
       <header class="resume-heading pb-3 mb-4">
-        <h1 class="display-6 fw-bold mb-1">${fnEscapeHtml(oProfile.targetRole || 'Resume Preview')}</h1>
+        <h1 class="display-5 fw-bold mb-1">${fnEscapeHtml(`${oUser.firstName || ''} ${oUser.lastName || ''}`.trim() || 'Resume Preview')}</h1>
+        <p class="mb-2 text-body-secondary">${fnEscapeHtml(oUser.email || 'Business email will appear here after sign in.')}</p>
+        <h2 class="h4 mb-2">${fnEscapeHtml(oProfile.targetRole || 'Professional Resume')}</h2>
         <p class="lead mb-0">${fnEscapeHtml(oProfile.professionalSummary || 'Select your resume content to generate a tailored preview.')}</p>
       </header>
       <section class="mb-4">
@@ -191,6 +237,11 @@ const fnBuildResumeMarkup = (oResume) => {
 const fnGetSelectionQuery = () => {
   const oSelections = oAppState.oSelections;
   const cQuery = new URLSearchParams();
+  const oCurrentUser = fnGetCurrentUser();
+
+  if (oCurrentUser?.userId) {
+    cQuery.set('userId', String(oCurrentUser.userId));
+  }
 
   cQuery.set('jobIds', oSelections.aJobIds.join(','));
   cQuery.set('responsibilityIds', oSelections.aResponsibilityIds.join(','));
@@ -205,3 +256,36 @@ const fnFetchResumePreview = async () => {
   const aResume = await fnApiRequest(`/api/resumes?${fnGetSelectionQuery()}`);
   return aResume[0];
 };
+
+const fnHydrateAuthUi = () => {
+  const oCurrentUser = fnGetCurrentUser();
+  oAppState.oCurrentUser = oCurrentUser;
+
+  document.querySelectorAll('[data-user-name]').forEach((cElement) => {
+    cElement.textContent = oCurrentUser ? `${oCurrentUser.firstName} ${oCurrentUser.lastName}` : 'Guest';
+  });
+
+  document.querySelectorAll('[data-user-email]').forEach((cElement) => {
+    cElement.textContent = oCurrentUser?.email || '';
+  });
+};
+
+const fnRequireAuthentication = () => {
+  const bRequiresAuth = document.body.dataset.requiresAuth === 'true';
+
+  if (bRequiresAuth && !fnGetCurrentUser()) {
+    window.location.href = '/auth';
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  fnRequireAuthentication();
+  fnHydrateAuthUi();
+
+  document.querySelectorAll('[data-action="logout"]').forEach((cButton) => {
+    cButton.addEventListener('click', () => {
+      fnClearCurrentUser();
+      window.location.href = '/auth';
+    });
+  });
+});

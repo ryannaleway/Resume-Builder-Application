@@ -5,6 +5,7 @@ A full-stack resume builder web application built with Node.js, Express, SQLite,
 ## Features
 
 - Store and manage jobs, responsibilities, skills, skill categories, certifications, and awards in SQLite.
+- Sign up or sign in with first name, last name, business email, and password.
 - Select exactly which resume content to include for a tailored resume.
 - Generate a live web preview and a print-friendly resume layout.
 - Export the generated resume to PDF in the browser with `jsPDF`.
@@ -15,6 +16,7 @@ A full-stack resume builder web application built with Node.js, Express, SQLite,
 ## Tech Stack
 
 - Frontend: HTML, CSS, Bootstrap 5, JavaScript
+- Frontend UI assets: Bootstrap CDN and SweetAlert2 CDN
 - Backend: Node.js with Express
 - Database: SQLite with `sqlite3`
 - AI Integration: Google Gemini API
@@ -55,6 +57,7 @@ npm start
 ```
 
 6. Open [http://localhost:3000](http://localhost:3000).
+7. Create an account on `/auth` so your resume header can automatically show your first name, last name, and business email.
 
 ## Example `.env`
 
@@ -177,11 +180,17 @@ Content-Type: application/json
 ### Resume Generation
 
 - `GET /api/resumes`
-- `GET /api/resumes?jobIds=1,2&responsibilityIds=3,4&skillIds=2,5&certificationIds=1&awardIds=1`
+- `GET /api/resumes?userId=1&jobIds=1,2&responsibilityIds=3,4&skillIds=2,5&certificationIds=1&awardIds=1`
 
 ### AI Suggestions
 
 - `POST /api/ai/suggestions`
+
+### Authentication
+
+- `GET /api/auth/users?userId=1`
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
 
 Example AI request:
 
@@ -209,9 +218,10 @@ Content-Type: application/json
 - The `/preview` page provides print-friendly output.
 - Print styling hides navigation and UI controls with `@media print`.
 - PDF export uses `jsPDF` in the browser and saves the generated resume as `resume.pdf`.
+- The resume header is automatically populated from the currently signed-in user.
 
 ## Notes
 
-- The project avoids CDNs and serves Bootstrap and jsPDF from local installed dependencies.
+- Bootstrap and SweetAlert2 are loaded from CDNs because the frontend now uses the hosted browser assets directly.
 - The application uses prepared statements through `sqlite3`.
 - Validation is applied to all user-facing create and update routes.

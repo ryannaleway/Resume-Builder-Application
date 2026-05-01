@@ -1,6 +1,7 @@
 const { fnAll } = require('../db/database');
 
 const fnBuildResumeData = async (cFilters) => {
+  const nUserId = cFilters.nUserId;
   const aJobIds = cFilters.aJobIds;
   const aResponsibilityIds = cFilters.aResponsibilityIds;
   const aSkillIds = cFilters.aSkillIds;
@@ -105,7 +106,14 @@ const fnBuildResumeData = async (cFilters) => {
     return oAccumulator;
   }, {});
 
+  const aUsers = nUserId ? await fnAll(`
+    SELECT userId, firstName, lastName, email
+    FROM users
+    WHERE userId = ?
+  `, [nUserId]) : [];
+
   return [{
+    user: aUsers[0] || null,
     profile: aResumeProfiles[0] || null,
     jobs: aJobsWithResponsibilities,
     skillsByCategory: oSkillGroups,
