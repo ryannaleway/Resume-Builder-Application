@@ -5,6 +5,7 @@ const fnBuildResumeData = async (cFilters) => {
   const cContactMode = cFilters.cContactMode || 'email';
   const aJobIds = cFilters.aJobIds;
   const aResponsibilityIds = cFilters.aResponsibilityIds;
+  const aEducationEntryIds = cFilters.aEducationEntryIds;
   const aSkillIds = cFilters.aSkillIds;
   const aCertificationIds = cFilters.aCertificationIds;
   const aAwardIds = cFilters.aAwardIds;
@@ -42,6 +43,22 @@ const fnBuildResumeData = async (cFilters) => {
     `;
 
   const aResponsibilities = await fnAll(cResponsibilityQuery, [nUserId, ...(aResponsibilityIds || [])]);
+
+  const cEducationQuery = Array.isArray(aEducationEntryIds)
+    ? `
+      SELECT *
+      FROM educationEntries
+      WHERE userId = ? AND ${aEducationEntryIds.length > 0 ? `educationEntryId IN (${aEducationEntryIds.map(() => '?').join(',')})` : '1 = 0'}
+      ORDER BY endDate DESC, graduationDate DESC, educationEntryId DESC
+    `
+    : `
+      SELECT *
+      FROM educationEntries
+      WHERE userId = ?
+      ORDER BY endDate DESC, graduationDate DESC, educationEntryId DESC
+    `;
+
+  const aEducationEntries = await fnAll(cEducationQuery, [nUserId, ...(aEducationEntryIds || [])]);
 
   const cSkillQuery = Array.isArray(aSkillIds)
     ? `
@@ -151,6 +168,7 @@ const fnBuildResumeData = async (cFilters) => {
     contactMode: cContactMode,
     profile: oResolvedProfile,
     jobs: aJobsWithResponsibilities,
+    educationEntries: aEducationEntries,
     skillsByCategory: oSkillGroups,
     certifications: aCertifications,
     awards: aAwards

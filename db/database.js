@@ -105,6 +105,22 @@ const fnInitializeDatabase = async () => {
       FOREIGN KEY (jobId) REFERENCES jobs(jobId) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS educationEntries (
+      educationEntryId INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      schoolName TEXT NOT NULL,
+      degreeName TEXT DEFAULT '',
+      majorName TEXT DEFAULT '',
+      startDate TEXT DEFAULT '',
+      endDate TEXT DEFAULT '',
+      graduationDate TEXT DEFAULT '',
+      location TEXT DEFAULT '',
+      notes TEXT DEFAULT '',
+      createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS skillCategories (
       skillCategoryId INTEGER PRIMARY KEY AUTOINCREMENT,
       userId INTEGER,
@@ -204,6 +220,27 @@ const fnInitializeDatabase = async () => {
   const aSettingColumns = await fnAll('PRAGMA table_info(settings)');
   if (!aSettingColumns.map((oColumn) => oColumn.name).includes('userId')) {
     await fnExec('ALTER TABLE settings ADD COLUMN userId INTEGER;');
+  }
+
+  const aEducationColumns = await fnAll('PRAGMA table_info(educationEntries)');
+  if (aEducationColumns.length === 0) {
+    await fnExec(`
+      CREATE TABLE IF NOT EXISTS educationEntries (
+        educationEntryId INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId INTEGER,
+        schoolName TEXT NOT NULL,
+        degreeName TEXT DEFAULT '',
+        majorName TEXT DEFAULT '',
+        startDate TEXT DEFAULT '',
+        endDate TEXT DEFAULT '',
+        graduationDate TEXT DEFAULT '',
+        location TEXT DEFAULT '',
+        notes TEXT DEFAULT '',
+        createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
+      );
+    `);
   }
 
   const oJobCount = await fnGet('SELECT COUNT(*) AS nCount FROM jobs');

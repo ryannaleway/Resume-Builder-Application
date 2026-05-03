@@ -63,6 +63,19 @@ const fnDownloadResumePdf = (oResume) => {
     });
   }
 
+  if ((oResume.educationEntries || []).length > 0) {
+    fnWriteSectionTitle('Education');
+    oResume.educationEntries.forEach((oEducationEntry) => {
+      const cProgramLine = [oEducationEntry.degreeName, oEducationEntry.majorName].filter(Boolean).join(' in ');
+      const cDateLine = [fnFormatMonth(oEducationEntry.startDate), fnFormatMonth(oEducationEntry.endDate || oEducationEntry.graduationDate)].filter(Boolean).join(' - ');
+      fnWriteWrappedText([oEducationEntry.schoolName, cProgramLine, cDateLine].filter(Boolean).join(' | '));
+
+      if (oEducationEntry.notes) {
+        fnWriteWrappedText(oEducationEntry.notes, 20);
+      }
+    });
+  }
+
   if (Object.keys(oResume.skillsByCategory).length > 0) {
     fnWriteSectionTitle('Skills');
     Object.entries(oResume.skillsByCategory).forEach(([cCategoryName, aSkills]) => {

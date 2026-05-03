@@ -53,6 +53,20 @@ const fnRenderSelectionCards = () => {
     `;
   }).join('');
 
+  const cEducationMarkup = oAppState.aEducationEntries.map((oEducationEntry) => {
+    const bChecked = oAppState.oSelections.aEducationEntryIds.includes(oEducationEntry.educationEntryId);
+    const cEducationTitle = [oEducationEntry.schoolName, oEducationEntry.degreeName, oEducationEntry.majorName].filter(Boolean).join(' | ');
+
+    return `
+      <div class="form-check mb-2">
+        <input class="form-check-input selection-control" type="checkbox" value="${oEducationEntry.educationEntryId}" id="education_${oEducationEntry.educationEntryId}" data-selection-type="education">
+        <label class="form-check-label" for="education_${oEducationEntry.educationEntryId}">
+          ${fnEscapeHtml(cEducationTitle || oEducationEntry.schoolName)}
+        </label>
+      </div>
+    `.replace('type="checkbox"', `type="checkbox"${bChecked ? ' checked' : ''}`);
+  }).join('');
+
   const cCertificationMarkup = oAppState.aCertifications.map((oCertification) => {
     const bChecked = oAppState.oSelections.aCertificationIds.includes(oCertification.certificationId);
     return `
@@ -87,6 +101,10 @@ const fnRenderSelectionCards = () => {
       ${cSkillMarkup || '<p class="mb-0">Add skills before building a resume.</p>'}
     </section>
     <section class="mb-4">
+      <h2 class="h5">Education</h2>
+      ${cEducationMarkup || '<p class="mb-0">Add education before building a resume.</p>'}
+    </section>
+    <section class="mb-4">
       <h2 class="h5">Certifications</h2>
       ${cCertificationMarkup || '<p class="mb-0">Add certifications before building a resume.</p>'}
     </section>
@@ -99,6 +117,7 @@ const fnRenderSelectionCards = () => {
 
 const fnUpdateSelectionState = () => {
   oAppState.oSelections.aJobIds = Array.from(document.querySelectorAll('[data-selection-type="job"]:checked')).map((cInput) => Number(cInput.value));
+  oAppState.oSelections.aEducationEntryIds = Array.from(document.querySelectorAll('[data-selection-type="education"]:checked')).map((cInput) => Number(cInput.value));
   oAppState.oSelections.aResponsibilityIds = Array.from(document.querySelectorAll('[data-selection-type="responsibility"]:checked')).map((cInput) => Number(cInput.value));
   oAppState.oSelections.aSkillIds = Array.from(document.querySelectorAll('[data-selection-type="skill"]:checked')).map((cInput) => Number(cInput.value));
   oAppState.oSelections.aCertificationIds = Array.from(document.querySelectorAll('[data-selection-type="certification"]:checked')).map((cInput) => Number(cInput.value));
@@ -148,8 +167,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cObjectiveField = document.getElementById('resumeObjective');
   cContactModeField.value = oAppState.cContactMode;
 
-  const [aJobs, aSkillCategories, aSkills, aCertifications, aAwards, aSettings] = await Promise.all([
+  const [aJobs, aEducationEntries, aSkillCategories, aSkills, aCertifications, aAwards, aSettings] = await Promise.all([
     fnApiRequest(`/api/jobs?userId=${fnGetCurrentUserId()}`),
+    fnApiRequest(`/api/education?userId=${fnGetCurrentUserId()}`),
     fnApiRequest(`/api/skill-categories?userId=${fnGetCurrentUserId()}`),
     fnApiRequest(`/api/skills?userId=${fnGetCurrentUserId()}`),
     fnApiRequest(`/api/certifications?userId=${fnGetCurrentUserId()}`),
@@ -158,6 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
 
   oAppState.aJobs = aJobs;
+  oAppState.aEducationEntries = aEducationEntries;
   oAppState.aSkillCategories = aSkillCategories;
   oAppState.aSkills = aSkills;
   oAppState.aCertifications = aCertifications;
@@ -170,12 +191,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (
     oAppState.oSelections.aJobIds.length === 0 &&
+    oAppState.oSelections.aEducationEntryIds.length === 0 &&
     oAppState.oSelections.aResponsibilityIds.length === 0 &&
     oAppState.oSelections.aSkillIds.length === 0 &&
     oAppState.oSelections.aCertificationIds.length === 0 &&
     oAppState.oSelections.aAwardIds.length === 0
   ) {
     oAppState.oSelections.aJobIds = aJobs.map((oJob) => oJob.jobId);
+    oAppState.oSelections.aEducationEntryIds = aEducationEntries.map((oEducationEntry) => oEducationEntry.educationEntryId);
     oAppState.oSelections.aResponsibilityIds = aJobs.flatMap((oJob) => (oJob.responsibilities || []).map((oResponsibility) => oResponsibility.responsibilityId));
     oAppState.oSelections.aSkillIds = aSkills.map((oSkill) => oSkill.skillId);
     oAppState.oSelections.aCertificationIds = aCertifications.map((oCertification) => oCertification.certificationId);

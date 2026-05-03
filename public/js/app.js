@@ -2,6 +2,7 @@ const oAppState = {
   oCurrentUser: null,
   cContactMode: 'email',
   aJobs: [],
+  aEducationEntries: [],
   aResponsibilities: [],
   aSkillCategories: [],
   aSkills: [],
@@ -9,6 +10,7 @@ const oAppState = {
   aAwards: [],
   oSelections: {
     aJobIds: [],
+    aEducationEntryIds: [],
     aResponsibilityIds: [],
     aSkillIds: [],
     aCertificationIds: [],
@@ -124,6 +126,7 @@ const fnLoadSelections = () => {
     const oStoredSelections = JSON.parse(cStoredSelections);
     oAppState.oSelections = {
       aJobIds: oStoredSelections.aJobIds || [],
+      aEducationEntryIds: oStoredSelections.aEducationEntryIds || [],
       aResponsibilityIds: oStoredSelections.aResponsibilityIds || [],
       aSkillIds: oStoredSelections.aSkillIds || [],
       aCertificationIds: oStoredSelections.aCertificationIds || [],
@@ -207,6 +210,25 @@ const fnBuildResumeMarkup = (oResume) => {
   }).join('');
 
   const bHasJobs = oResume.jobs.length > 0;
+  const cEducationMarkup = (oResume.educationEntries || []).map((oEducationEntry) => {
+    const cDegreeLine = [oEducationEntry.degreeName, oEducationEntry.majorName].filter(Boolean).join(' in ');
+    const cDateLine = [fnFormatMonth(oEducationEntry.startDate), fnFormatMonth(oEducationEntry.endDate || oEducationEntry.graduationDate)].filter(Boolean).join(' - ');
+
+    return `
+      <section class="mb-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <h3 class="h5 mb-1">${fnEscapeHtml(oEducationEntry.schoolName)}</h3>
+            ${cDegreeLine ? `<p class="mb-1 fw-semibold">${fnEscapeHtml(cDegreeLine)}</p>` : ''}
+            ${oEducationEntry.location ? `<p class="mb-1 text-body-secondary">${fnEscapeHtml(oEducationEntry.location)}</p>` : ''}
+          </div>
+          ${cDateLine ? `<p class="mb-0 text-body-secondary">${fnEscapeHtml(cDateLine)}</p>` : ''}
+        </div>
+        ${oEducationEntry.notes ? `<p class="mb-0">${fnEscapeHtml(oEducationEntry.notes)}</p>` : ''}
+      </section>
+    `;
+  }).join('');
+  const bHasEducation = (oResume.educationEntries || []).length > 0;
   const cSkillsMarkup = Object.entries(oResume.skillsByCategory).map(([cCategoryName, aSkills]) => {
     return `
       <div class="mb-3">
@@ -251,6 +273,12 @@ const fnBuildResumeMarkup = (oResume) => {
         ${aJobMarkup}
       </section>
       ` : ''}
+      ${bHasEducation ? `
+      <section class="mb-4">
+        <h2 class="h5 text-uppercase text-primary">Education</h2>
+        ${cEducationMarkup}
+      </section>
+      ` : ''}
       ${bHasSkills ? `
       <section class="mb-4">
         <h2 class="h5 text-uppercase text-primary">Skills</h2>
@@ -289,6 +317,7 @@ const fnGetSelectionQuery = () => {
   cQuery.set('contactMode', oAppState.cContactMode);
 
   cQuery.set('jobIds', oSelections.aJobIds.join(','));
+  cQuery.set('educationEntryIds', oSelections.aEducationEntryIds.join(','));
   cQuery.set('responsibilityIds', oSelections.aResponsibilityIds.join(','));
   cQuery.set('skillIds', oSelections.aSkillIds.join(','));
   cQuery.set('certificationIds', oSelections.aCertificationIds.join(','));

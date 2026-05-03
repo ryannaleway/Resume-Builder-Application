@@ -15,6 +15,7 @@ const fnGenerateResume = fnAsyncHandler(async (cRequest, cResponse) => {
     nUserId: fnRequirePositiveInteger(cRequest.query.userId, 'userId'),
     cContactMode: cRequest.query.contactMode || 'email',
     aJobIds: fnParseSelectionIds(cRequest.query.jobIds),
+    aEducationEntryIds: fnParseSelectionIds(cRequest.query.educationEntryIds),
     aResponsibilityIds: fnParseSelectionIds(cRequest.query.responsibilityIds),
     aSkillIds: fnParseSelectionIds(cRequest.query.skillIds),
     aCertificationIds: fnParseSelectionIds(cRequest.query.certificationIds),

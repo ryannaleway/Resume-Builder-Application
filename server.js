@@ -25,6 +25,7 @@ const fnStartServer = async () => {
   cApp.use('/vendor/jspdf', express.static(path.join(__dirname, 'node_modules', 'jspdf', 'dist')));
 
   cApp.use('/api/jobs', require('./routes/jobRoutes'));
+  cApp.use('/api/education', require('./routes/educationRoutes'));
   cApp.use('/api/responsibilities', require('./routes/responsibilityRoutes'));
   cApp.use('/api/skills', require('./routes/skillRoutes'));
   cApp.use('/api/skill-categories', require('./routes/skillCategoryRoutes'));
@@ -47,6 +48,10 @@ const fnStartServer = async () => {
 
   cApp.get('/skills', (cRequest, cResponse) => {
     cResponse.sendFile(path.join(__dirname, 'public', 'skills.html'));
+  });
+
+  cApp.get('/education', (cRequest, cResponse) => {
+    cResponse.sendFile(path.join(__dirname, 'public', 'education.html'));
   });
 
   cApp.get('/credentials', (cRequest, cResponse) => {
