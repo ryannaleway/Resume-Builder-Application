@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       majorName: document.getElementById('majorName').value,
       startDate: document.getElementById('educationStartDate').value,
       endDate: document.getElementById('educationEndDate').value,
-      graduationDate: document.getElementById('graduationDate').value,
       location: document.getElementById('educationLocation').value,
       notes: document.getElementById('educationNotes').value
     };
@@ -89,7 +88,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('majorName').value = oEducationEntry.majorName || '';
       document.getElementById('educationStartDate').value = oEducationEntry.startDate || '';
       document.getElementById('educationEndDate').value = oEducationEntry.endDate || '';
-      document.getElementById('graduationDate').value = oEducationEntry.graduationDate || '';
       document.getElementById('educationLocation').value = oEducationEntry.location || '';
       document.getElementById('educationNotes').value = oEducationEntry.notes || '';
       document.getElementById('educationSubmitButton').textContent = 'Update Education';
