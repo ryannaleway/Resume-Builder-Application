@@ -1,33 +1,34 @@
 const { fnRun, fnAll } = require('../db/database');
 
-const fnGetSettings = async (cSettingKey) => {
+const fnBuildStoredSettingKey = (cSettingKey, nUserId) => `${nUserId}:${cSettingKey}`;
+
+const fnGetSettings = async (cSettingKey, nUserId) => {
   if (cSettingKey) {
     return fnAll(`
       SELECT *
       FROM settings
-      WHERE settingKey = ?
+      WHERE settingKey = ? AND userId = ?
       ORDER BY settingKey ASC
-    `, [cSettingKey]);
+    `, [fnBuildStoredSettingKey(cSettingKey, nUserId), nUserId]);
   }
 
   return fnAll(`
     SELECT *
     FROM settings
+    WHERE userId = ?
     ORDER BY settingKey ASC
-  `);
+  `, [nUserId]);
 };
 
-const fnUpsertSetting = async (cSettingKey, cSettingValue) => {
+const fnUpsertSetting = async (cSettingKey, cSettingValue, nUserId) => {
+  const cStoredSettingKey = fnBuildStoredSettingKey(cSettingKey, nUserId);
+  await fnRun('DELETE FROM settings WHERE settingKey = ? AND userId = ?', [cStoredSettingKey, nUserId]);
   await fnRun(`
-    INSERT INTO settings (settingKey, settingValue, updatedAt)
-    VALUES (?, ?, CURRENT_TIMESTAMP)
-    ON CONFLICT(settingKey)
-    DO UPDATE SET
-      settingValue = excluded.settingValue,
-      updatedAt = CURRENT_TIMESTAMP
-  `, [cSettingKey, cSettingValue]);
+    INSERT INTO settings (userId, settingKey, settingValue, updatedAt)
+    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+  `, [nUserId, cStoredSettingKey, cSettingValue]);
 
-  return (await fnGetSettings(cSettingKey))[0];
+  return (await fnGetSettings(cSettingKey, nUserId))[0];
 };
 
 module.exports = {

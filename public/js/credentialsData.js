@@ -4,9 +4,10 @@ const oCredentialsPageState = {
 };
 
 const fnLoadCredentialsPage = async () => {
+  const nUserId = fnGetCurrentUserId();
   const [aCertifications, aAwards] = await Promise.all([
-    fnApiRequest('/api/certifications'),
-    fnApiRequest('/api/awards')
+    fnApiRequest(`/api/certifications?userId=${nUserId}`),
+    fnApiRequest(`/api/awards?userId=${nUserId}`)
   ]);
 
   oAppState.aCertifications = aCertifications;
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('certificationForm').addEventListener('submit', async (cEvent) => {
     cEvent.preventDefault();
     const oPayload = {
+      userId: fnGetCurrentUserId(),
       certificationName: document.getElementById('certificationName').value,
       issuingOrganization: document.getElementById('certificationOrganization').value,
       issuedDate: document.getElementById('certificationDate').value,
@@ -85,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('awardForm').addEventListener('submit', async (cEvent) => {
     cEvent.preventDefault();
     const oPayload = {
+      userId: fnGetCurrentUserId(),
       awardName: document.getElementById('awardName').value,
       issuingOrganization: document.getElementById('awardOrganization').value,
       awardedDate: document.getElementById('awardDate').value,
@@ -134,7 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (cAction === 'delete-certification') {
-      await fnApiRequest(`/api/certifications/${Number(cButton.dataset.certificationId)}`, { method: 'DELETE' });
+      await fnApiRequest(`/api/certifications/${Number(cButton.dataset.certificationId)}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
       fnShowAlert('credentialsAlert', 'Certification deleted successfully.');
       await fnLoadCredentialsPage();
     }
@@ -150,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (cAction === 'delete-award') {
-      await fnApiRequest(`/api/awards/${Number(cButton.dataset.awardId)}`, { method: 'DELETE' });
+      await fnApiRequest(`/api/awards/${Number(cButton.dataset.awardId)}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
       fnShowAlert('credentialsAlert', 'Award deleted successfully.');
       await fnLoadCredentialsPage();
     }

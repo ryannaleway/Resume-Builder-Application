@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const aSettings = await fnApiRequest('/api/settings');
+    const aSettings = await fnApiRequest(`/api/settings?userId=${fnGetCurrentUserId()}`);
     const oGeminiSetting = aSettings.find((oItem) => oItem.settingKey === 'geminiApiKey');
 
     if (oGeminiSetting) {
@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await fnApiRequest('/api/settings', {
         method: 'PUT',
         body: JSON.stringify({
+          userId: fnGetCurrentUserId(),
           settingKey: 'geminiApiKey',
           settingValue: document.getElementById('geminiApiKey').value
         })

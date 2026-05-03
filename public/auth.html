@@ -17,7 +17,7 @@
             <div class="col-lg-5 bg-primary text-white p-4 p-lg-5">
               <p class="text-uppercase fw-semibold mb-2">Resume Builder</p>
               <h1 class="display-6 fw-bold">Create an account so your resume header builds itself.</h1>
-              <p class="mb-0">Your first name, last name, and business email will automatically appear at the top of every resume preview.</p>
+              <p class="mb-0">Your first name, last name, and preferred contact information will automatically appear at the top of every resume preview.</p>
             </div>
             <div class="col-lg-7 p-4 p-lg-5 bg-white">
               <ul class="nav nav-pills mb-4" id="authTab" role="tablist">
@@ -34,21 +34,27 @@
                   <form id="signUpForm">
                     <div class="row g-3">
                       <div class="col-md-6">
-                        <label class="form-label" for="signUpFirstName">First name</label>
-                        <input class="form-control" id="signUpFirstName" aria-label="First name" required>
+                        <label class="form-label fw-semibold" for="txtFirstName">First Name</label>
+                        <input class="form-control form-control-lg" id="txtFirstName" aria-label="First Name" aria-required="true" required>
                       </div>
                       <div class="col-md-6">
-                        <label class="form-label" for="signUpLastName">Last name</label>
-                        <input class="form-control" id="signUpLastName" aria-label="Last name" required>
+                        <label class="form-label fw-semibold" for="txtLastName">Last Name</label>
+                        <input class="form-control form-control-lg" id="txtLastName" aria-label="Last Name" aria-required="true" required>
                       </div>
                     </div>
                     <div class="mt-3">
-                      <label class="form-label" for="signUpEmail">Business email</label>
-                      <input class="form-control" id="signUpEmail" type="email" aria-label="Business email" required>
+                      <label class="form-label fw-semibold mt-3" for="txtEmail">Email Address</label>
+                      <input class="form-control form-control-lg" id="txtEmail" type="email" aria-label="Email Address" aria-required="true" required>
                     </div>
                     <div class="mt-3">
-                      <label class="form-label" for="signUpPassword">Password</label>
-                      <input class="form-control" id="signUpPassword" type="password" aria-label="Password" required>
+                      <label class="form-label fw-semibold mt-3" for="phone">Phone Number<br>
+                        <small class="text-muted">Format: 123-456-7890</small>
+                      </label>
+                      <input class="form-control form-control-lg" id="phone" type="tel" name="phone" placeholder="123-456-7890" aria-label="Phone Number" maxlength="12">
+                    </div>
+                    <div class="mt-3">
+                      <label class="form-label fw-semibold" for="txtPassword">Password</label>
+                      <input class="form-control form-control-lg" id="txtPassword" type="password" aria-label="Password" aria-required="true" required>
                     </div>
                     <button class="btn btn-primary mt-4" type="submit">Create Account</button>
                   </form>
@@ -57,12 +63,18 @@
                 <section class="tab-pane fade" id="signin-pane" role="tabpanel" aria-labelledby="signin-tab">
                   <form id="signInForm">
                     <div class="mb-3">
-                      <label class="form-label" for="signInEmail">Business email</label>
-                      <input class="form-control" id="signInEmail" type="email" aria-label="Sign in email" required>
+                      <label class="form-label fw-semibold mt-3" for="txtSignInEmail">Email Address</label>
+                      <input class="form-control form-control-lg" id="txtSignInEmail" type="email" aria-label="Email Address">
                     </div>
                     <div class="mb-3">
-                      <label class="form-label" for="signInPassword">Password</label>
-                      <input class="form-control" id="signInPassword" type="password" aria-label="Sign in password" required>
+                      <label class="form-label fw-semibold mt-3" for="signInPhone">Phone Number<br>
+                        <small class="text-muted">Format: 123-456-7890</small>
+                      </label>
+                      <input class="form-control form-control-lg" id="signInPhone" type="tel" name="signInPhone" placeholder="123-456-7890" aria-label="Phone Number" maxlength="12">
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold" for="txtSignInPassword">Password</label>
+                      <input class="form-control form-control-lg" id="txtSignInPassword" type="password" aria-label="Sign in password" aria-required="true" required>
                     </div>
                     <button class="btn btn-outline-primary" type="submit">Sign In</button>
                   </form>

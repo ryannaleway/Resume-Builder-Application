@@ -4,20 +4,23 @@ const { fnAsyncHandler } = require('../middleware/asyncMiddleware');
 const { fnRequireString, fnOptionalString, fnRequirePositiveInteger, fnCreateError } = require('../utils/validation');
 
 const fnListSkills = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.query.userId, 'userId');
   const nSkillId = cRequest.query.skillId ? fnRequirePositiveInteger(cRequest.query.skillId, 'skillId') : null;
   const nSkillCategoryId = cRequest.query.skillCategoryId ? fnRequirePositiveInteger(cRequest.query.skillCategoryId, 'skillCategoryId') : null;
 
-  cResponse.status(200).json(await fnGetSkills(nSkillId, nSkillCategoryId));
+  cResponse.status(200).json(await fnGetSkills(nSkillId, nSkillCategoryId, nUserId));
 });
 
 const fnCreateSkillHandler = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.body.userId, 'userId');
   const nSkillCategoryId = fnRequirePositiveInteger(cRequest.body.skillCategoryId, 'skillCategoryId');
 
-  if (!(await fnGetSkillCategories(nSkillCategoryId))[0]) {
+  if (!(await fnGetSkillCategories(nSkillCategoryId, nUserId))[0]) {
     throw fnCreateError(404, 'The selected skill category was not found.');
   }
 
   const cSkill = await fnCreateSkill({
+    userId: nUserId,
     skillCategoryId: nSkillCategoryId,
     skillName: fnRequireString(cRequest.body.skillName, 'Skill name'),
     proficiency: fnOptionalString(cRequest.body.proficiency)
@@ -27,18 +30,19 @@ const fnCreateSkillHandler = fnAsyncHandler(async (cRequest, cResponse) => {
 });
 
 const fnUpdateSkillHandler = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.body.userId, 'userId');
   const nSkillId = fnRequirePositiveInteger(cRequest.params.skillId, 'skillId');
   const nSkillCategoryId = fnRequirePositiveInteger(cRequest.body.skillCategoryId, 'skillCategoryId');
 
-  if (!(await fnGetSkills(nSkillId))[0]) {
+  if (!(await fnGetSkills(nSkillId, null, nUserId))[0]) {
     throw fnCreateError(404, 'Skill was not found.');
   }
 
-  if (!(await fnGetSkillCategories(nSkillCategoryId))[0]) {
+  if (!(await fnGetSkillCategories(nSkillCategoryId, nUserId))[0]) {
     throw fnCreateError(404, 'The selected skill category was not found.');
   }
 
-  const cSkill = await fnUpdateSkill(nSkillId, {
+  const cSkill = await fnUpdateSkill(nSkillId, nUserId, {
     skillCategoryId: nSkillCategoryId,
     skillName: fnRequireString(cRequest.body.skillName, 'Skill name'),
     proficiency: fnOptionalString(cRequest.body.proficiency)
@@ -48,9 +52,10 @@ const fnUpdateSkillHandler = fnAsyncHandler(async (cRequest, cResponse) => {
 });
 
 const fnDeleteSkillHandler = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.query.userId, 'userId');
   const nSkillId = fnRequirePositiveInteger(cRequest.params.skillId, 'skillId');
 
-  if (!(await fnGetSkills(nSkillId))[0]) {
+  if (!(await fnGetSkills(nSkillId, null, nUserId))[0]) {
     throw fnCreateError(404, 'Skill was not found.');
   }
 

@@ -1,5 +1,6 @@
 const oAppState = {
   oCurrentUser: null,
+  cContactMode: 'email',
   aJobs: [],
   aResponsibilities: [],
   aSkillCategories: [],
@@ -13,6 +14,16 @@ const oAppState = {
     aCertificationIds: [],
     aAwardIds: []
   }
+};
+
+const fnGetCurrentUserId = () => {
+  const oCurrentUser = fnGetCurrentUser();
+  return oCurrentUser?.userId || null;
+};
+
+const fnGetUserScopedStorageKey = (cKey) => {
+  const nUserId = fnGetCurrentUserId();
+  return nUserId ? `${cKey}_${nUserId}` : cKey;
 };
 
 const fnGetCurrentUser = () => {
@@ -99,11 +110,11 @@ const fnApiRequest = async (cUrl, cOptions = {}) => {
 };
 
 const fnPersistSelections = () => {
-  localStorage.setItem('resumeBuilderSelections', JSON.stringify(oAppState.oSelections));
+  localStorage.setItem(fnGetUserScopedStorageKey('resumeBuilderSelections'), JSON.stringify(oAppState.oSelections));
 };
 
 const fnLoadSelections = () => {
-  const cStoredSelections = localStorage.getItem('resumeBuilderSelections');
+  const cStoredSelections = localStorage.getItem(fnGetUserScopedStorageKey('resumeBuilderSelections'));
 
   if (!cStoredSelections) {
     return;
@@ -121,6 +132,14 @@ const fnLoadSelections = () => {
   } catch (cError) {
     console.error('Unable to load previous resume selections.', cError);
   }
+};
+
+const fnPersistContactMode = () => {
+  localStorage.setItem(fnGetUserScopedStorageKey('resumeBuilderContactMode'), oAppState.cContactMode);
+};
+
+const fnLoadContactMode = () => {
+  oAppState.cContactMode = localStorage.getItem(fnGetUserScopedStorageKey('resumeBuilderContactMode')) || 'email';
 };
 
 const fnFormatMonth = (cDateValue) => {
@@ -152,6 +171,18 @@ const fnEscapeHtml = (cValue) => {
 const fnBuildResumeMarkup = (oResume) => {
   const oProfile = oResume.profile || {};
   const oUser = oResume.user || {};
+  const cContactMode = oResume.contactMode || 'email';
+  const aContactParts = [];
+
+  if ((cContactMode === 'email' || cContactMode === 'both') && oUser.email) {
+    aContactParts.push(oUser.email);
+  }
+
+  if ((cContactMode === 'phone' || cContactMode === 'both') && oUser.phone) {
+    aContactParts.push(oUser.phone);
+  }
+
+  const cHeaderContact = aContactParts.join(' | ') || oUser.email || oUser.phone || 'Preferred contact will appear here after sign in.';
   const aJobMarkup = oResume.jobs.map((oJob) => {
     const cResponsibilitiesMarkup = oJob.responsibilities.map((oResponsibility) => {
       return `<li class="mb-2">${fnEscapeHtml(oResponsibility.description)}</li>`;
@@ -206,7 +237,7 @@ const fnBuildResumeMarkup = (oResume) => {
     <article class="resume-paper rounded-4 p-4 p-lg-5 mx-auto" aria-label="Resume preview document">
       <header class="resume-heading pb-3 mb-4">
         <h1 class="display-5 fw-bold mb-1">${fnEscapeHtml(`${oUser.firstName || ''} ${oUser.lastName || ''}`.trim() || 'Resume Preview')}</h1>
-        <p class="mb-2 text-body-secondary">${fnEscapeHtml(oUser.email || 'Business email will appear here after sign in.')}</p>
+        <p class="mb-2 text-body-secondary">${fnEscapeHtml(cHeaderContact)}</p>
         <h2 class="h4 mb-2">${fnEscapeHtml(oProfile.targetRole || 'Professional Resume')}</h2>
         <p class="lead mb-0">${fnEscapeHtml(oProfile.professionalSummary || 'Select your resume content to generate a tailored preview.')}</p>
       </header>
@@ -243,6 +274,8 @@ const fnGetSelectionQuery = () => {
     cQuery.set('userId', String(oCurrentUser.userId));
   }
 
+  cQuery.set('contactMode', oAppState.cContactMode);
+
   cQuery.set('jobIds', oSelections.aJobIds.join(','));
   cQuery.set('responsibilityIds', oSelections.aResponsibilityIds.join(','));
   cQuery.set('skillIds', oSelections.aSkillIds.join(','));
@@ -266,7 +299,7 @@ const fnHydrateAuthUi = () => {
   });
 
   document.querySelectorAll('[data-user-email]').forEach((cElement) => {
-    cElement.textContent = oCurrentUser?.email || '';
+    cElement.textContent = oCurrentUser?.email || oCurrentUser?.phone || '';
   });
 };
 

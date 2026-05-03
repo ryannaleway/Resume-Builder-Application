@@ -4,7 +4,8 @@ const oJobsPageState = {
 };
 
 const fnLoadJobsPage = async () => {
-  const aJobs = await fnApiRequest('/api/jobs');
+  const nUserId = fnGetCurrentUserId();
+  const aJobs = await fnApiRequest(`/api/jobs?userId=${nUserId}`);
   oAppState.aJobs = aJobs;
 
   const cJobList = document.getElementById('jobList');
@@ -65,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     fnClearAlert('jobsAlert');
 
     const oPayload = {
+      userId: fnGetCurrentUserId(),
       title: document.getElementById('jobTitle').value,
       company: document.getElementById('jobCompany').value,
       startDate: document.getElementById('jobStartDate').value,
@@ -101,6 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     fnClearAlert('responsibilitiesAlert');
 
     const oPayload = {
+      userId: fnGetCurrentUserId(),
       jobId: document.getElementById('responsibilityJobId').value,
       description: document.getElementById('responsibilityDescription').value
     };
@@ -166,7 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (cAction === 'delete-job') {
       const nJobId = Number(cButton.dataset.jobId);
-      await fnApiRequest(`/api/jobs/${nJobId}`, { method: 'DELETE' });
+      await fnApiRequest(`/api/jobs/${nJobId}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
       fnShowAlert('jobsAlert', 'Job deleted successfully.');
       await fnLoadJobsPage();
     }
@@ -183,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (cAction === 'delete-responsibility') {
       const nResponsibilityId = Number(cButton.dataset.responsibilityId);
-      await fnApiRequest(`/api/responsibilities/${nResponsibilityId}`, { method: 'DELETE' });
+      await fnApiRequest(`/api/responsibilities/${nResponsibilityId}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
       fnShowAlert('responsibilitiesAlert', 'Responsibility deleted successfully.');
       await fnLoadJobsPage();
     }

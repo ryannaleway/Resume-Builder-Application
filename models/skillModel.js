@@ -1,32 +1,50 @@
 const { fnRun, fnAll } = require('../db/database');
 
-const fnGetSkills = async (nSkillId, nSkillCategoryId) => {
+const fnDecodeSkillRecord = (oSkill, nUserId) => {
+  if (!oSkill) {
+    return oSkill;
+  }
+
+  return {
+    ...oSkill,
+    categoryName: String(oSkill.categoryName || '').replace(`|||uid:${nUserId}`, '')
+  };
+};
+
+const fnGetSkills = async (nSkillId, nSkillCategoryId, nUserId) => {
   if (nSkillId) {
-    return fnAll(`
+    const aRows = await fnAll(`
       SELECT s.*, sc.categoryName
       FROM skills s
       INNER JOIN skillCategories sc ON sc.skillCategoryId = s.skillCategoryId
-      WHERE s.skillId = ?
+      WHERE s.skillId = ? AND sc.userId = ?
       ORDER BY sc.categoryName ASC, s.skillName ASC
-    `, [nSkillId]);
+    `, [nSkillId, nUserId]);
+
+    return aRows.map((oSkill) => fnDecodeSkillRecord(oSkill, nUserId));
   }
 
   if (nSkillCategoryId) {
-    return fnAll(`
+    const aRows = await fnAll(`
       SELECT s.*, sc.categoryName
       FROM skills s
       INNER JOIN skillCategories sc ON sc.skillCategoryId = s.skillCategoryId
-      WHERE s.skillCategoryId = ?
+      WHERE s.skillCategoryId = ? AND sc.userId = ?
       ORDER BY s.skillName ASC
-    `, [nSkillCategoryId]);
+    `, [nSkillCategoryId, nUserId]);
+
+    return aRows.map((oSkill) => fnDecodeSkillRecord(oSkill, nUserId));
   }
 
-  return fnAll(`
+  const aRows = await fnAll(`
     SELECT s.*, sc.categoryName
     FROM skills s
     INNER JOIN skillCategories sc ON sc.skillCategoryId = s.skillCategoryId
+    WHERE sc.userId = ?
     ORDER BY sc.categoryName ASC, s.skillName ASC
-  `);
+  `, [nUserId]);
+
+  return aRows.map((oSkill) => fnDecodeSkillRecord(oSkill, nUserId));
 };
 
 const fnCreateSkill = async (cSkill) => {
@@ -39,10 +57,10 @@ const fnCreateSkill = async (cSkill) => {
     cSkill.proficiency
   ]);
 
-  return (await fnGetSkills(oResult.lastID))[0];
+  return (await fnGetSkills(oResult.lastID, null, cSkill.userId))[0];
 };
 
-const fnUpdateSkill = async (nSkillId, cSkill) => {
+const fnUpdateSkill = async (nSkillId, nUserId, cSkill) => {
   await fnRun(`
     UPDATE skills
     SET skillCategoryId = ?,
@@ -57,7 +75,7 @@ const fnUpdateSkill = async (nSkillId, cSkill) => {
     nSkillId
   ]);
 
-  return (await fnGetSkills(nSkillId))[0];
+  return (await fnGetSkills(nSkillId, null, nUserId))[0];
 };
 
 const fnDeleteSkill = (nSkillId) => {

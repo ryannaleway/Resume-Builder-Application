@@ -18,6 +18,7 @@ const fnOpenSuggestionModal = async (cTargetFieldId, cSourceType) => {
     const oSuggestions = await fnApiRequest('/api/ai/suggestions', {
       method: 'POST',
       body: JSON.stringify({
+        userId: fnGetCurrentUserId(),
         sourceType: cSourceType,
         sourceText: cSourceText,
         apiKey: document.getElementById('inlineGeminiApiKey')?.value || ''

@@ -4,8 +4,9 @@ const { fnAsyncHandler } = require('../middleware/asyncMiddleware');
 const { fnRequireString, fnOptionalString, fnRequirePositiveInteger, fnCreateError } = require('../utils/validation');
 
 const fnListJobs = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.query.userId, 'userId');
   const nJobId = cRequest.query.jobId ? fnRequirePositiveInteger(cRequest.query.jobId, 'jobId') : null;
-  const aSourceJobs = await fnGetJobs(nJobId);
+  const aSourceJobs = await fnGetJobs(nJobId, nUserId);
   const aJobs = await Promise.all(aSourceJobs.map(async (cJob) => {
     return {
       ...cJob,
@@ -17,7 +18,9 @@ const fnListJobs = fnAsyncHandler(async (cRequest, cResponse) => {
 });
 
 const fnCreateJobHandler = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.body.userId, 'userId');
   const cJob = await fnCreateJob({
+    userId: nUserId,
     title: fnRequireString(cRequest.body.title, 'Title'),
     company: fnRequireString(cRequest.body.company, 'Company'),
     startDate: fnRequireString(cRequest.body.startDate, 'Start date'),
@@ -30,14 +33,15 @@ const fnCreateJobHandler = fnAsyncHandler(async (cRequest, cResponse) => {
 });
 
 const fnUpdateJobHandler = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.body.userId, 'userId');
   const nJobId = fnRequirePositiveInteger(cRequest.params.jobId, 'jobId');
-  const cExistingJob = (await fnGetJobs(nJobId))[0];
+  const cExistingJob = (await fnGetJobs(nJobId, nUserId))[0];
 
   if (!cExistingJob) {
     throw fnCreateError(404, 'Job was not found.');
   }
 
-  const cJob = await fnUpdateJob(nJobId, {
+  const cJob = await fnUpdateJob(nJobId, nUserId, {
     title: fnRequireString(cRequest.body.title, 'Title'),
     company: fnRequireString(cRequest.body.company, 'Company'),
     startDate: fnRequireString(cRequest.body.startDate, 'Start date'),
@@ -50,14 +54,15 @@ const fnUpdateJobHandler = fnAsyncHandler(async (cRequest, cResponse) => {
 });
 
 const fnDeleteJobHandler = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.query.userId, 'userId');
   const nJobId = fnRequirePositiveInteger(cRequest.params.jobId, 'jobId');
-  const cExistingJob = (await fnGetJobs(nJobId))[0];
+  const cExistingJob = (await fnGetJobs(nJobId, nUserId))[0];
 
   if (!cExistingJob) {
     throw fnCreateError(404, 'Job was not found.');
   }
 
-  await fnDeleteJob(nJobId);
+  await fnDeleteJob(nJobId, nUserId);
   cResponse.status(200).json({ message: 'Job deleted successfully.' });
 });
 

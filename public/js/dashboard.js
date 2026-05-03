@@ -1,10 +1,11 @@
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    const nUserId = fnGetCurrentUserId();
     const [aJobs, aSkills, aCertifications, aAwards] = await Promise.all([
-      fnApiRequest('/api/jobs'),
-      fnApiRequest('/api/skills'),
-      fnApiRequest('/api/certifications'),
-      fnApiRequest('/api/awards')
+      fnApiRequest(`/api/jobs?userId=${nUserId}`),
+      fnApiRequest(`/api/skills?userId=${nUserId}`),
+      fnApiRequest(`/api/certifications?userId=${nUserId}`),
+      fnApiRequest(`/api/awards?userId=${nUserId}`)
     ]);
 
     document.getElementById('jobCount').textContent = aJobs.length;

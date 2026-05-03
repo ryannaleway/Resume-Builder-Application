@@ -4,9 +4,10 @@ const oSkillsPageState = {
 };
 
 const fnLoadSkillsPage = async () => {
+  const nUserId = fnGetCurrentUserId();
   const [aSkillCategories, aSkills] = await Promise.all([
-    fnApiRequest('/api/skill-categories'),
-    fnApiRequest('/api/skills')
+    fnApiRequest(`/api/skill-categories?userId=${nUserId}`),
+    fnApiRequest(`/api/skills?userId=${nUserId}`)
   ]);
 
   oAppState.aSkillCategories = aSkillCategories;
@@ -58,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('categoryForm').addEventListener('submit', async (cEvent) => {
     cEvent.preventDefault();
     const oPayload = {
+      userId: fnGetCurrentUserId(),
       categoryName: document.getElementById('categoryName').value
     };
 
@@ -87,6 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('skillForm').addEventListener('submit', async (cEvent) => {
     cEvent.preventDefault();
     const oPayload = {
+      userId: fnGetCurrentUserId(),
       skillCategoryId: document.getElementById('skillCategoryId').value,
       skillName: document.getElementById('skillName').value,
       proficiency: document.getElementById('skillProficiency').value
@@ -132,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (cAction === 'delete-category') {
-      await fnApiRequest(`/api/skill-categories/${Number(cButton.dataset.skillCategoryId)}`, { method: 'DELETE' });
+      await fnApiRequest(`/api/skill-categories/${Number(cButton.dataset.skillCategoryId)}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
       fnShowAlert('skillsAlert', 'Skill category deleted successfully.');
       await fnLoadSkillsPage();
     }
@@ -147,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (cAction === 'delete-skill') {
-      await fnApiRequest(`/api/skills/${Number(cButton.dataset.skillId)}`, { method: 'DELETE' });
+      await fnApiRequest(`/api/skills/${Number(cButton.dataset.skillId)}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
       fnShowAlert('skillsAlert', 'Skill deleted successfully.');
       await fnLoadSkillsPage();
     }

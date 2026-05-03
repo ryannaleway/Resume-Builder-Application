@@ -1,6 +1,6 @@
 const { fnAsyncHandler } = require('../middleware/asyncMiddleware');
 const { fnBuildResumeData } = require('../models/resumeModel');
-const { fnParseIdArray } = require('../utils/validation');
+const { fnParseIdArray, fnRequirePositiveInteger } = require('../utils/validation');
 
 const fnParseSelectionIds = (vValue) => {
   if (typeof vValue === 'undefined') {
@@ -12,7 +12,8 @@ const fnParseSelectionIds = (vValue) => {
 
 const fnGenerateResume = fnAsyncHandler(async (cRequest, cResponse) => {
   const aResume = await fnBuildResumeData({
-    nUserId: cRequest.query.userId ? fnParseIdArray(cRequest.query.userId)[0] || null : null,
+    nUserId: fnRequirePositiveInteger(cRequest.query.userId, 'userId'),
+    cContactMode: cRequest.query.contactMode || 'email',
     aJobIds: fnParseSelectionIds(cRequest.query.jobIds),
     aResponsibilityIds: fnParseSelectionIds(cRequest.query.responsibilityIds),
     aSkillIds: fnParseSelectionIds(cRequest.query.skillIds),

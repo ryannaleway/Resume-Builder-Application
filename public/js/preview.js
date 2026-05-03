@@ -2,6 +2,16 @@ const fnDownloadResumePdf = (oResume) => {
   const { jsPDF } = window.jspdf;
   const cPdfDocument = new jsPDF();
   let nVerticalPosition = 20;
+  const cContactMode = oResume.contactMode || 'email';
+  const aContactParts = [];
+
+  if ((cContactMode === 'email' || cContactMode === 'both') && oResume.user?.email) {
+    aContactParts.push(oResume.user.email);
+  }
+
+  if ((cContactMode === 'phone' || cContactMode === 'both') && oResume.user?.phone) {
+    aContactParts.push(oResume.user.phone);
+  }
 
   const fnEnsurePageSpace = (nRequiredHeight = 12) => {
     if (nVerticalPosition + nRequiredHeight > 280) {
@@ -30,8 +40,14 @@ const fnDownloadResumePdf = (oResume) => {
 
   cPdfDocument.setFont('helvetica', 'bold');
   cPdfDocument.setFontSize(18);
-  cPdfDocument.text(oResume.profile?.targetRole || 'Resume', 14, nVerticalPosition);
+  cPdfDocument.text(`${oResume.user?.firstName || ''} ${oResume.user?.lastName || ''}`.trim() || 'Resume', 14, nVerticalPosition);
   nVerticalPosition += 10;
+  fnWriteWrappedText(aContactParts.join(' | ') || oResume.user?.email || oResume.user?.phone || '');
+  nVerticalPosition += 2;
+  cPdfDocument.setFont('helvetica', 'bold');
+  cPdfDocument.setFontSize(14);
+  cPdfDocument.text(oResume.profile?.targetRole || 'Professional Resume', 14, nVerticalPosition);
+  nVerticalPosition += 8;
 
   fnWriteWrappedText(oResume.profile?.professionalSummary || '');
   nVerticalPosition += 4;
@@ -65,11 +81,12 @@ const fnDownloadResumePdf = (oResume) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   let oResume = null;
-  const cStoredPreview = localStorage.getItem('resumeBuilderPreview');
+  const cStoredPreview = localStorage.getItem(fnGetUserScopedStorageKey('resumeBuilderPreview'));
 
   if (cStoredPreview) {
     oResume = JSON.parse(cStoredPreview);
   } else {
+    fnLoadContactMode();
     oResume = await fnFetchResumePreview();
   }
 

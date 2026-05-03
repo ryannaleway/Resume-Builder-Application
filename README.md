@@ -5,7 +5,10 @@ A full-stack resume builder web application built with Node.js, Express, SQLite,
 ## Features
 
 - Store and manage jobs, responsibilities, skills, skill categories, certifications, and awards in SQLite.
-- Sign up or sign in with first name, last name, business email, and password.
+- Sign up or sign in with first name, last name, business email, password, and an optional phone number.
+- Allow users to sign in with either email or phone.
+- Allow users to choose in the resume builder whether the header shows email, phone, or both.
+- Keep jobs, skills, certifications, awards, settings, and resume selections scoped to the signed-in account.
 - Select exactly which resume content to include for a tailored resume.
 - Generate a live web preview and a print-friendly resume layout.
 - Export the generated resume to PDF in the browser with `jsPDF`.
@@ -57,7 +60,8 @@ npm start
 ```
 
 6. Open [http://localhost:3000](http://localhost:3000).
-7. Create an account on `/auth` so your resume header can automatically show your first name, last name, and business email.
+7. Create an account on `/auth`.
+8. Use the contact toggle on `/builder` to choose whether the resume header shows email, phone, or both.
 
 ## Example `.env`
 
@@ -189,8 +193,36 @@ Content-Type: application/json
 ### Authentication
 
 - `GET /api/auth/users?userId=1`
+- `GET /api/auth/users?phone=123-456-7890`
 - `POST /api/auth/signup`
 - `POST /api/auth/login`
+
+Example sign up request:
+
+```http
+POST /api/auth/signup
+Content-Type: application/json
+
+{
+  "firstName": "Morgan",
+  "lastName": "Lee",
+  "email": "morgan.lee@example.com",
+  "phone": "123-456-7890",
+  "password": "SecurePass123"
+}
+```
+
+Example sign in with phone:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "phone": "123-456-7890",
+  "password": "SecurePass123"
+}
+```
 
 Example AI request:
 
@@ -219,6 +251,8 @@ Content-Type: application/json
 - Print styling hides navigation and UI controls with `@media print`.
 - PDF export uses `jsPDF` in the browser and saves the generated resume as `resume.pdf`.
 - The resume header is automatically populated from the currently signed-in user.
+- The `/builder` page includes a contact toggle that lets the user show email, phone, or both in the resume header.
+- Resume content is user-scoped, so one account does not see another account's jobs, skills, awards, certifications, settings, or saved builder selections.
 
 ## Notes
 

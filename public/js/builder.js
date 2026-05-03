@@ -110,18 +110,21 @@ const fnRefreshResumePreview = async () => {
   fnUpdateSelectionState();
   const oResume = await fnFetchResumePreview();
   document.getElementById('resumePreviewContainer').innerHTML = fnBuildResumeMarkup(oResume);
-  localStorage.setItem('resumeBuilderPreview', JSON.stringify(oResume));
+  localStorage.setItem(fnGetUserScopedStorageKey('resumeBuilderPreview'), JSON.stringify(oResume));
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
   fnLoadSelections();
+  fnLoadContactMode();
+  const cContactModeField = document.getElementById('resumeContactMode');
+  cContactModeField.value = oAppState.cContactMode;
 
   const [aJobs, aSkillCategories, aSkills, aCertifications, aAwards] = await Promise.all([
-    fnApiRequest('/api/jobs'),
-    fnApiRequest('/api/skill-categories'),
-    fnApiRequest('/api/skills'),
-    fnApiRequest('/api/certifications'),
-    fnApiRequest('/api/awards')
+    fnApiRequest(`/api/jobs?userId=${fnGetCurrentUserId()}`),
+    fnApiRequest(`/api/skill-categories?userId=${fnGetCurrentUserId()}`),
+    fnApiRequest(`/api/skills?userId=${fnGetCurrentUserId()}`),
+    fnApiRequest(`/api/certifications?userId=${fnGetCurrentUserId()}`),
+    fnApiRequest(`/api/awards?userId=${fnGetCurrentUserId()}`)
   ]);
 
   oAppState.aJobs = aJobs;
@@ -152,6 +155,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (cEvent.target.classList.contains('selection-control')) {
       await fnRefreshResumePreview();
     }
+  });
+
+  cContactModeField.addEventListener('change', async (cEvent) => {
+    oAppState.cContactMode = cEvent.target.value;
+    fnPersistContactMode();
+    await fnRefreshResumePreview();
   });
 
   document.getElementById('openPreviewButton').addEventListener('click', () => {

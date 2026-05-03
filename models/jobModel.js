@@ -1,27 +1,29 @@
 const { fnRun, fnAll } = require('../db/database');
 
-const fnGetJobs = async (nJobId) => {
+const fnGetJobs = async (nJobId, nUserId) => {
   if (nJobId) {
     return fnAll(`
       SELECT *
       FROM jobs
-      WHERE jobId = ?
+      WHERE jobId = ? AND userId = ?
       ORDER BY startDate DESC, jobId DESC
-    `, [nJobId]);
+    `, [nJobId, nUserId]);
   }
 
   return fnAll(`
     SELECT *
     FROM jobs
+    WHERE userId = ?
     ORDER BY startDate DESC, jobId DESC
-  `);
+  `, [nUserId]);
 };
 
 const fnCreateJob = async (cJob) => {
   const oResult = await fnRun(`
-    INSERT INTO jobs (title, company, startDate, endDate, location, summary, updatedAt)
-    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    INSERT INTO jobs (userId, title, company, startDate, endDate, location, summary, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
   `, [
+    cJob.userId,
     cJob.title,
     cJob.company,
     cJob.startDate,
@@ -30,10 +32,10 @@ const fnCreateJob = async (cJob) => {
     cJob.summary
   ]);
 
-  return (await fnGetJobs(oResult.lastID))[0];
+  return (await fnGetJobs(oResult.lastID, cJob.userId))[0];
 };
 
-const fnUpdateJob = async (nJobId, cJob) => {
+const fnUpdateJob = async (nJobId, nUserId, cJob) => {
   await fnRun(`
     UPDATE jobs
     SET title = ?,
@@ -43,7 +45,7 @@ const fnUpdateJob = async (nJobId, cJob) => {
         location = ?,
         summary = ?,
         updatedAt = CURRENT_TIMESTAMP
-    WHERE jobId = ?
+    WHERE jobId = ? AND userId = ?
   `, [
     cJob.title,
     cJob.company,
@@ -51,14 +53,15 @@ const fnUpdateJob = async (nJobId, cJob) => {
     cJob.endDate,
     cJob.location,
     cJob.summary,
-    nJobId
+    nJobId,
+    nUserId
   ]);
 
-  return (await fnGetJobs(nJobId))[0];
+  return (await fnGetJobs(nJobId, nUserId))[0];
 };
 
-const fnDeleteJob = (nJobId) => {
-  return fnRun('DELETE FROM jobs WHERE jobId = ?', [nJobId]);
+const fnDeleteJob = (nJobId, nUserId) => {
+  return fnRun('DELETE FROM jobs WHERE jobId = ? AND userId = ?', [nJobId, nUserId]);
 };
 
 module.exports = {

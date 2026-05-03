@@ -1,47 +1,65 @@
 const { fnRun, fnAll } = require('../db/database');
 
-const fnGetSkillCategories = async (nSkillCategoryId) => {
-  if (nSkillCategoryId) {
-    return fnAll(`
-      SELECT *
-      FROM skillCategories
-      WHERE skillCategoryId = ?
-      ORDER BY categoryName ASC
-    `, [nSkillCategoryId]);
+const fnEncodeCategoryName = (cCategoryName, nUserId) => `${cCategoryName}|||uid:${nUserId}`;
+const fnDecodeCategoryRecord = (oCategory, nUserId) => {
+  if (!oCategory) {
+    return oCategory;
   }
 
-  return fnAll(`
+  return {
+    ...oCategory,
+    categoryName: String(oCategory.categoryName || '').replace(`|||uid:${nUserId}`, '')
+  };
+};
+
+const fnGetSkillCategories = async (nSkillCategoryId, nUserId) => {
+  if (nSkillCategoryId) {
+    const aRows = await fnAll(`
+      SELECT *
+      FROM skillCategories
+      WHERE skillCategoryId = ? AND userId = ?
+      ORDER BY categoryName ASC
+    `, [nSkillCategoryId, nUserId]);
+
+    return aRows.map((oCategory) => fnDecodeCategoryRecord(oCategory, nUserId));
+  }
+
+  const aRows = await fnAll(`
     SELECT *
     FROM skillCategories
+    WHERE userId = ?
     ORDER BY categoryName ASC
-  `);
+  `, [nUserId]);
+
+  return aRows.map((oCategory) => fnDecodeCategoryRecord(oCategory, nUserId));
 };
 
 const fnCreateSkillCategory = async (cSkillCategory) => {
   const oResult = await fnRun(`
-    INSERT INTO skillCategories (categoryName, updatedAt)
-    VALUES (?, CURRENT_TIMESTAMP)
-  `, [cSkillCategory.categoryName]);
+    INSERT INTO skillCategories (userId, categoryName, updatedAt)
+    VALUES (?, ?, CURRENT_TIMESTAMP)
+  `, [cSkillCategory.userId, fnEncodeCategoryName(cSkillCategory.categoryName, cSkillCategory.userId)]);
 
-  return (await fnGetSkillCategories(oResult.lastID))[0];
+  return (await fnGetSkillCategories(oResult.lastID, cSkillCategory.userId))[0];
 };
 
-const fnUpdateSkillCategory = async (nSkillCategoryId, cSkillCategory) => {
+const fnUpdateSkillCategory = async (nSkillCategoryId, nUserId, cSkillCategory) => {
   await fnRun(`
     UPDATE skillCategories
     SET categoryName = ?,
         updatedAt = CURRENT_TIMESTAMP
-    WHERE skillCategoryId = ?
+    WHERE skillCategoryId = ? AND userId = ?
   `, [
-    cSkillCategory.categoryName,
-    nSkillCategoryId
+    fnEncodeCategoryName(cSkillCategory.categoryName, nUserId),
+    nSkillCategoryId,
+    nUserId
   ]);
 
-  return (await fnGetSkillCategories(nSkillCategoryId))[0];
+  return (await fnGetSkillCategories(nSkillCategoryId, nUserId))[0];
 };
 
-const fnDeleteSkillCategory = (nSkillCategoryId) => {
-  return fnRun('DELETE FROM skillCategories WHERE skillCategoryId = ?', [nSkillCategoryId]);
+const fnDeleteSkillCategory = (nSkillCategoryId, nUserId) => {
+  return fnRun('DELETE FROM skillCategories WHERE skillCategoryId = ? AND userId = ?', [nSkillCategoryId, nUserId]);
 };
 
 module.exports = {

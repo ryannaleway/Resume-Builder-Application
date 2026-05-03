@@ -75,6 +75,8 @@ const fnInitializeDatabase = async () => {
       firstName TEXT NOT NULL,
       lastName TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
+      phone TEXT,
+      preferredContact TEXT NOT NULL DEFAULT 'email',
       passwordHash TEXT NOT NULL,
       createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -82,6 +84,7 @@ const fnInitializeDatabase = async () => {
 
     CREATE TABLE IF NOT EXISTS jobs (
       jobId INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
       title TEXT NOT NULL,
       company TEXT NOT NULL,
       startDate TEXT NOT NULL,
@@ -89,7 +92,8 @@ const fnInitializeDatabase = async () => {
       location TEXT DEFAULT '',
       summary TEXT DEFAULT '',
       createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS responsibilities (
@@ -103,9 +107,11 @@ const fnInitializeDatabase = async () => {
 
     CREATE TABLE IF NOT EXISTS skillCategories (
       skillCategoryId INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
       categoryName TEXT NOT NULL UNIQUE,
       createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS skills (
@@ -120,22 +126,26 @@ const fnInitializeDatabase = async () => {
 
     CREATE TABLE IF NOT EXISTS certifications (
       certificationId INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
       certificationName TEXT NOT NULL,
       issuingOrganization TEXT NOT NULL,
       issuedDate TEXT DEFAULT '',
       description TEXT DEFAULT '',
       createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS awards (
       awardId INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
       awardName TEXT NOT NULL,
       issuingOrganization TEXT NOT NULL,
       awardedDate TEXT DEFAULT '',
       description TEXT DEFAULT '',
       createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS resumeProfiles (
@@ -148,12 +158,53 @@ const fnInitializeDatabase = async () => {
     );
 
     CREATE TABLE IF NOT EXISTS settings (
+      userId INTEGER,
       settingKey TEXT PRIMARY KEY,
       settingValue TEXT NOT NULL,
       createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
     );
   `);
+
+  // Existing local databases may have been created before phone and preferred
+  // contact support existed, so we inspect the schema and add the missing
+  // columns without forcing the user to reset their data file.
+  const aUserColumns = await fnAll('PRAGMA table_info(users)');
+  const aUserColumnNames = aUserColumns.map((oColumn) => oColumn.name);
+
+  if (!aUserColumnNames.includes('phone')) {
+    await fnExec('ALTER TABLE users ADD COLUMN phone TEXT;');
+  }
+
+  if (!aUserColumnNames.includes('preferredContact')) {
+    await fnExec(`ALTER TABLE users ADD COLUMN preferredContact TEXT NOT NULL DEFAULT 'email';`);
+  }
+
+  const aJobColumns = await fnAll('PRAGMA table_info(jobs)');
+  if (!aJobColumns.map((oColumn) => oColumn.name).includes('userId')) {
+    await fnExec('ALTER TABLE jobs ADD COLUMN userId INTEGER;');
+  }
+
+  const aSkillCategoryColumns = await fnAll('PRAGMA table_info(skillCategories)');
+  if (!aSkillCategoryColumns.map((oColumn) => oColumn.name).includes('userId')) {
+    await fnExec('ALTER TABLE skillCategories ADD COLUMN userId INTEGER;');
+  }
+
+  const aCertificationColumns = await fnAll('PRAGMA table_info(certifications)');
+  if (!aCertificationColumns.map((oColumn) => oColumn.name).includes('userId')) {
+    await fnExec('ALTER TABLE certifications ADD COLUMN userId INTEGER;');
+  }
+
+  const aAwardColumns = await fnAll('PRAGMA table_info(awards)');
+  if (!aAwardColumns.map((oColumn) => oColumn.name).includes('userId')) {
+    await fnExec('ALTER TABLE awards ADD COLUMN userId INTEGER;');
+  }
+
+  const aSettingColumns = await fnAll('PRAGMA table_info(settings)');
+  if (!aSettingColumns.map((oColumn) => oColumn.name).includes('userId')) {
+    await fnExec('ALTER TABLE settings ADD COLUMN userId INTEGER;');
+  }
 
   const oJobCount = await fnGet('SELECT COUNT(*) AS nCount FROM jobs');
 

@@ -1,13 +1,14 @@
 const { fnAsyncHandler } = require('../middleware/asyncMiddleware');
 const { fnGetSettings } = require('../models/settingModel');
-const { fnRequireString, fnCreateError } = require('../utils/validation');
+const { fnRequireString, fnRequirePositiveInteger, fnCreateError } = require('../utils/validation');
 const { fnDecryptText } = require('../utils/security');
 
 const fnSuggestImprovements = fnAsyncHandler(async (cRequest, cResponse) => {
+  const nUserId = fnRequirePositiveInteger(cRequest.body.userId, 'userId');
   const cSourceType = fnRequireString(cRequest.body.sourceType, 'sourceType');
   const cSourceText = fnRequireString(cRequest.body.sourceText, 'sourceText');
   const cRequestApiKey = typeof cRequest.body.apiKey === 'string' ? cRequest.body.apiKey.trim() : '';
-  const cStoredApiKeyRecord = (await fnGetSettings('geminiApiKey'))[0];
+  const cStoredApiKeyRecord = (await fnGetSettings('geminiApiKey', nUserId))[0];
   const cStoredApiKey = cStoredApiKeyRecord ? fnDecryptText(cStoredApiKeyRecord.settingValue) : '';
   const cApiKey = cRequestApiKey || cStoredApiKey || process.env.GEMINI_API_KEY || '';
 
