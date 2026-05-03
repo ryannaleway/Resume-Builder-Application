@@ -52,29 +52,37 @@ const fnDownloadResumePdf = (oResume) => {
   fnWriteWrappedText(oResume.profile?.professionalSummary || '');
   nVerticalPosition += 4;
 
-  fnWriteSectionTitle('Professional Experience');
-  oResume.jobs.forEach((oJob) => {
-    fnWriteWrappedText(`${oJob.title} | ${oJob.company} | ${fnFormatMonth(oJob.startDate)} - ${fnFormatMonth(oJob.endDate)}`);
-    oJob.responsibilities.forEach((oResponsibility) => {
-      fnWriteWrappedText(`- ${oResponsibility.description}`, 20);
+  if (oResume.jobs.length > 0) {
+    fnWriteSectionTitle('Professional Experience');
+    oResume.jobs.forEach((oJob) => {
+      fnWriteWrappedText(`${oJob.title} | ${oJob.company} | ${fnFormatMonth(oJob.startDate)} - ${fnFormatMonth(oJob.endDate)}`);
+      oJob.responsibilities.forEach((oResponsibility) => {
+        fnWriteWrappedText(`- ${oResponsibility.description}`, 20);
+      });
+      nVerticalPosition += 4;
     });
-    nVerticalPosition += 4;
-  });
+  }
 
-  fnWriteSectionTitle('Skills');
-  Object.entries(oResume.skillsByCategory).forEach(([cCategoryName, aSkills]) => {
-    fnWriteWrappedText(`${cCategoryName}: ${aSkills.map((oSkill) => oSkill.skillName).join(', ')}`);
-  });
+  if (Object.keys(oResume.skillsByCategory).length > 0) {
+    fnWriteSectionTitle('Skills');
+    Object.entries(oResume.skillsByCategory).forEach(([cCategoryName, aSkills]) => {
+      fnWriteWrappedText(`${cCategoryName}: ${aSkills.map((oSkill) => oSkill.skillName).join(', ')}`);
+    });
+  }
 
-  fnWriteSectionTitle('Certifications');
-  oResume.certifications.forEach((oCertification) => {
-    fnWriteWrappedText(`${oCertification.certificationName} | ${oCertification.issuingOrganization}`);
-  });
+  if (oResume.certifications.length > 0) {
+    fnWriteSectionTitle('Certifications');
+    oResume.certifications.forEach((oCertification) => {
+      fnWriteWrappedText(`${oCertification.certificationName} | ${oCertification.issuingOrganization}`);
+    });
+  }
 
-  fnWriteSectionTitle('Awards');
-  oResume.awards.forEach((oAward) => {
-    fnWriteWrappedText(`${oAward.awardName} | ${oAward.issuingOrganization}`);
-  });
+  if (oResume.awards.length > 0) {
+    fnWriteSectionTitle('Awards');
+    oResume.awards.forEach((oAward) => {
+      fnWriteWrappedText(`${oAward.awardName} | ${oAward.issuingOrganization}`);
+    });
+  }
 
   cPdfDocument.save('resume.pdf');
 };

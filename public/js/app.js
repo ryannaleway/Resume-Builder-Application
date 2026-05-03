@@ -206,6 +206,7 @@ const fnBuildResumeMarkup = (oResume) => {
     `;
   }).join('');
 
+  const bHasJobs = oResume.jobs.length > 0;
   const cSkillsMarkup = Object.entries(oResume.skillsByCategory).map(([cCategoryName, aSkills]) => {
     return `
       <div class="mb-3">
@@ -214,6 +215,7 @@ const fnBuildResumeMarkup = (oResume) => {
       </div>
     `;
   }).join('');
+  const bHasSkills = Object.keys(oResume.skillsByCategory).length > 0;
 
   const cCertificationsMarkup = oResume.certifications.map((oCertification) => {
     return `
@@ -223,6 +225,7 @@ const fnBuildResumeMarkup = (oResume) => {
       </li>
     `;
   }).join('');
+  const bHasCertifications = oResume.certifications.length > 0;
 
   const cAwardsMarkup = oResume.awards.map((oAward) => {
     return `
@@ -232,6 +235,7 @@ const fnBuildResumeMarkup = (oResume) => {
       </li>
     `;
   }).join('');
+  const bHasAwards = oResume.awards.length > 0;
 
   return `
     <article class="resume-paper rounded-4 p-4 p-lg-5 mx-auto" aria-label="Resume preview document">
@@ -241,26 +245,34 @@ const fnBuildResumeMarkup = (oResume) => {
         <h2 class="h4 mb-2">${fnEscapeHtml(oProfile.targetRole || 'Professional Resume')}</h2>
         <p class="lead mb-0">${fnEscapeHtml(oProfile.professionalSummary || 'Select your resume content to generate a tailored preview.')}</p>
       </header>
+      ${bHasJobs ? `
       <section class="mb-4">
         <h2 class="h5 text-uppercase text-primary">Professional Experience</h2>
-        ${aJobMarkup || '<p class="mb-0">No jobs selected.</p>'}
+        ${aJobMarkup}
       </section>
+      ` : ''}
+      ${bHasSkills ? `
       <section class="mb-4">
         <h2 class="h5 text-uppercase text-primary">Skills</h2>
-        ${cSkillsMarkup || '<p class="mb-0">No skills selected.</p>'}
+        ${cSkillsMarkup}
       </section>
+      ` : ''}
+      ${bHasCertifications ? `
       <section class="mb-4">
         <h2 class="h5 text-uppercase text-primary">Certifications</h2>
         <ul class="ps-3 mb-0">
-          ${cCertificationsMarkup || '<li>No certifications selected.</li>'}
+          ${cCertificationsMarkup}
         </ul>
       </section>
+      ` : ''}
+      ${bHasAwards ? `
       <section>
         <h2 class="h5 text-uppercase text-primary">Awards</h2>
         <ul class="ps-3 mb-0">
-          ${cAwardsMarkup || '<li>No awards selected.</li>'}
+          ${cAwardsMarkup}
         </ul>
       </section>
+      ` : ''}
     </article>
   `;
 };
