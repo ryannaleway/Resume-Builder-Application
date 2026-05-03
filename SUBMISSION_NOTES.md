@@ -24,23 +24,6 @@ Then open [http://localhost:3000](http://localhost:3000).
 
 ## Sharing Permission Statement
 
-You should edit this line before final submission so it matches your preference:
+I, Ryan Naleway, give full permission for my project to be shared.
 
-- Sharing permission: `YES` or `NO`
-
-## Author Image Requirement
-
-The assignment requires either:
-
-- a candid image of you developing the application, or
-- an AI-generated image of you as your favorite animal working on the application
-
-Add that file to your final ZIP before submission.
-
-## Final Submission Checklist
-
-- update the sharing permission line above
-- add the required author image
-- capture Lighthouse accessibility screenshots or reports
-- confirm `.env` is not included in the ZIP
-- confirm the app runs locally with `npm start`
+- Sharing permission: `YES`

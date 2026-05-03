@@ -2,7 +2,7 @@
 
 ## Summary
 
-Generative AI was used during development of ResumeForge Builder to help scaffold structure, refine frontend behavior, and accelerate layout experimentation for the resume preview and export workflow. Every generated change was reviewed and integrated manually.
+I used Generative AI, on Codex. it was used during development of ResumeForge Builder to help scaffold structure, refine frontend behavior, and accelerate layout experimentation for the resume preview and export workflow. Every generated change was reviewed and integrated manually. I tailored it also based on past assignments and strucuture that my professor had used in class. It's used on .md files to explain to users looking for additional information. AI is also used within the application itself, such as in the AI Improved workflows. 
 
 ## How AI Is Used In The Application
 
@@ -49,10 +49,3 @@ Relevant notes:
 - the project can be run locally with `npm install` and `npm start`
 - AI assistance was used as a development accelerator, not as a runtime dependency beyond the Gemini API integration described above
 
-## Review Responsibility
-
-All AI-generated or AI-assisted code should be understandable by the project author. Any section discussed during grading should be explainable in terms of:
-
-- what the code does
-- why that approach was chosen
-- how the data moves through the route, controller, model, and frontend layers
