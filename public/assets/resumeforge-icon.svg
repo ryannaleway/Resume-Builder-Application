@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">ResumeForge Builder icon</title>
+  <desc id="desc">A shield with a document and checkmark representing a polished resume builder.</desc>
+  <defs>
+    <linearGradient id="shieldFill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d6efd"/>
+      <stop offset="100%" stop-color="#0b5ed7"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#shieldFill)" d="M64 8 108 24v32c0 30-18 50-44 64C38 106 20 86 20 56V24L64 8Z"/>
+  <path fill="#ffffff" d="M44 34h40v8H44zm0 16h40v8H44zm0 16h22v8H44z"/>
+  <path fill="#d1e7ff" d="m56 90-10-10 5.7-5.7 4.3 4.3 18.3-18.3L80 66 56 90Z"/>
+</svg>

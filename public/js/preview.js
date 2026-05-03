@@ -189,7 +189,7 @@ const fnDownloadResumePdf = async (oResume) => {
   cPdfDocument.save('resume.pdf');
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
+const fnLoadPreviewView = async () => {
   let oResume = null;
   const cStoredPreview = localStorage.getItem(fnGetUserScopedStorageKey('resumeBuilderPreview'));
 
@@ -201,12 +201,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.getElementById('fullResumePreview').innerHTML = fnBuildResumeMarkup(oResume);
+  return oResume;
+};
 
-  document.getElementById('printResumeButton').addEventListener('click', () => {
-    window.print();
-  });
+window.fnInitializePreviewView = async () => {
+  if (!window.fnHasViewBeenInitialized('/preview')) {
+    document.getElementById('printResumeButton').addEventListener('click', () => {
+      window.print();
+    });
 
-  document.getElementById('downloadPdfButton').addEventListener('click', async () => {
-    await fnDownloadResumePdf(oResume);
-  });
-});
+    document.getElementById('downloadPdfButton').addEventListener('click', async () => {
+      const oResume = await fnLoadPreviewView();
+      await fnDownloadResumePdf(oResume);
+    });
+
+    window.fnMarkViewInitialized('/preview');
+  }
+
+  await fnLoadPreviewView();
+};

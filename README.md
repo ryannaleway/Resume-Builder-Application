@@ -1,28 +1,23 @@
-# Resume Builder
+# ResumeForge Builder
 
-https://github.com/ryannaleway/Resume-Builder-Application.git
+[GitHub Repository](https://github.com/ryannaleway/Resume-Builder-Application.git)
 
-A full-stack resume builder web application built with Node.js, Express, SQLite, Bootstrap 5, and Google Gemini.
+ResumeForge Builder is a local-first resume application built for CSC3100. It helps users store reusable career content in SQLite, request AI wording suggestions with Google Gemini, and assemble print-friendly resumes from selected jobs, education, skills, certifications, and awards.
 
-## Features
+## Core Features
 
-- Store and manage jobs, responsibilities, skills, skill categories, certifications, and awards in SQLite.
-- Sign up or sign in with first name, last name, business email, password, and an optional phone number.
-- Allow users to sign in with either email or phone.
-- Allow users to choose in the resume builder whether the header shows email, phone, or both.
-- Save a target role and professional summary at the top of the resume.
-- Keep jobs, skills, certifications, awards, settings, and resume selections scoped to the signed-in account.
-- Select exactly which resume content to include for a tailored resume.
-- Generate a live web preview and a print-friendly resume layout.
-- Export the generated resume to PDF in the browser with `jsPDF`.
-- Request Gemini suggestions for job summaries, responsibilities, skills, and certifications.
-- Accept or reject AI suggestions directly in the user interface.
-- Save a Gemini API key securely in the database using application-level encryption.
+- Single-page application built with one [public/index.html](C:/Users/Ryan/Desktop/ResumeBuilder/public/index.html) shell and route-based DOM sections
+- Account sign up and sign in with first name, last name, email, optional phone, and password
+- User-scoped jobs, responsibilities, education, skills, certifications, awards, settings, and saved resume selections
+- Resume builder with contact toggle, target role, and professional summary
+- Resume preview and browser PDF export
+- Google Gemini suggestion workflow for job summaries, responsibilities, skills, and certifications
+- Local vendor assets for Bootstrap, SweetAlert2, and jsPDF with no frontend CDNs
+- Library attribution modal available inside the interface
 
 ## Tech Stack
 
 - Frontend: HTML, CSS, Bootstrap 5, JavaScript
-- Frontend UI assets: Bootstrap CDN and SweetAlert2 CDN
 - Backend: Node.js with Express
 - Database: SQLite with `sqlite3`
 - AI Integration: Google Gemini API
@@ -32,6 +27,7 @@ A full-stack resume builder web application built with Node.js, Express, SQLite,
 
 ```text
 /public
+  /assets
   /css
   /js
 /routes
@@ -43,28 +39,32 @@ package.json
 .env.example
 .gitignore
 README.md
+AI_USAGE.md
+ACCESSIBILITY.md
+SUBMISSION_NOTES.md
+Agents.md
+Example-Resume.pdf
 ```
 
 ## Local Setup
 
 1. Install Node.js 18 or newer.
-2. Install dependencies:
+2. Install dependencies.
 
 ```bash
 npm install
 ```
 
-3. Create a `.env` file from `.env.example`.
-4. Update the values in `.env`.
-5. Start the application:
+3. Create a `.env` file based on `.env.example`.
+4. Fill in the environment values shown below.
+5. Start the application.
 
 ```bash
 npm start
 ```
 
 6. Open [http://localhost:3000](http://localhost:3000).
-7. Create an account on `/auth`.
-8. Use the contact toggle on `/builder` to choose whether the resume header shows email, phone, or both.
+7. Create an account on `/auth` or sign in with an existing account.
 
 ## Example `.env`
 
@@ -77,117 +77,79 @@ APP_SECRET=replace-with-a-long-random-string
 
 ## Sample Data
 
-The application automatically seeds sample jobs, responsibilities, skills, certifications, awards, and a default resume profile the first time the SQLite database is created.
-
-## How Generative AI Is Used
-
-The application uses Google Gemini to improve resume-related text entered by the user.
-
-- Job summaries can be rewritten to sound clearer and more professional.
-- Job responsibilities can be strengthened to emphasize impact and outcomes.
-- Skills can be refined to fit resume wording more naturally.
-- Certification descriptions can be improved for clarity and credibility.
-
-The AI flow is:
-
-1. The user enters text in the interface.
-2. The frontend sends the text to `POST /api/ai/suggestions`.
-3. The server retrieves the Gemini API key from the request, encrypted settings, or `.env`.
-4. The server sends a prompt to Gemini asking for structured JSON suggestions.
-5. The frontend displays the returned suggestions in a modal.
-6. The user chooses whether to apply a suggestion.
+The first database initialization seeds sample jobs, responsibilities, skills, certifications, awards, and starter settings so the application can be explored quickly during local testing.
 
 ## API Overview
 
-All `GET` routes return JSON arrays to match the repository rules.
+All `GET` routes return JSON arrays.
 
 ### Jobs
 
 - `GET /api/jobs`
-- `GET /api/jobs?jobId=1`
+- `GET /api/jobs?jobId=1&userId=1`
 - `POST /api/jobs`
 - `PUT /api/jobs/:jobId`
-- `DELETE /api/jobs/:jobId`
-
-Example create request:
-
-```http
-POST /api/jobs
-Content-Type: application/json
-
-{
-  "title": "Senior Developer",
-  "company": "Example Corp",
-  "startDate": "2024-01",
-  "endDate": "Present",
-  "location": "Remote",
-  "summary": "Delivered accessible business applications."
-}
-```
+- `DELETE /api/jobs/:jobId?userId=1`
 
 ### Responsibilities
 
 - `GET /api/responsibilities`
-- `GET /api/responsibilities?jobId=1`
+- `GET /api/responsibilities?jobId=1&userId=1`
 - `POST /api/responsibilities`
 - `PUT /api/responsibilities/:responsibilityId`
-- `DELETE /api/responsibilities/:responsibilityId`
+- `DELETE /api/responsibilities/:responsibilityId?userId=1`
+
+### Education
+
+- `GET /api/education`
+- `GET /api/education?educationEntryId=1&userId=1`
+- `POST /api/education`
+- `PUT /api/education/:educationEntryId`
+- `DELETE /api/education/:educationEntryId?userId=1`
 
 ### Skill Categories
 
 - `GET /api/skill-categories`
-- `GET /api/skill-categories?skillCategoryId=1`
+- `GET /api/skill-categories?skillCategoryId=1&userId=1`
 - `POST /api/skill-categories`
 - `PUT /api/skill-categories/:skillCategoryId`
-- `DELETE /api/skill-categories/:skillCategoryId`
+- `DELETE /api/skill-categories/:skillCategoryId?userId=1`
 
 ### Skills
 
 - `GET /api/skills`
-- `GET /api/skills?skillId=1`
-- `GET /api/skills?skillCategoryId=1`
+- `GET /api/skills?skillId=1&userId=1`
+- `GET /api/skills?skillCategoryId=1&userId=1`
 - `POST /api/skills`
 - `PUT /api/skills/:skillId`
-- `DELETE /api/skills/:skillId`
+- `DELETE /api/skills/:skillId?userId=1`
 
 ### Certifications
 
 - `GET /api/certifications`
-- `GET /api/certifications?certificationId=1`
+- `GET /api/certifications?certificationId=1&userId=1`
 - `POST /api/certifications`
 - `PUT /api/certifications/:certificationId`
-- `DELETE /api/certifications/:certificationId`
+- `DELETE /api/certifications/:certificationId?userId=1`
 
 ### Awards
 
 - `GET /api/awards`
-- `GET /api/awards?awardId=1`
+- `GET /api/awards?awardId=1&userId=1`
 - `POST /api/awards`
 - `PUT /api/awards/:awardId`
-- `DELETE /api/awards/:awardId`
+- `DELETE /api/awards/:awardId?userId=1`
 
 ### Settings
 
 - `GET /api/settings`
-- `GET /api/settings?settingKey=geminiApiKey`
+- `GET /api/settings?settingKey=geminiApiKey&userId=1`
 - `PUT /api/settings`
-
-Example settings request:
-
-```http
-PUT /api/settings
-Content-Type: application/json
-
-{
-  "settingKey": "geminiApiKey",
-  "settingValue": "your-user-provided-key"
-}
-```
 
 ### Resume Generation
 
 - `GET /api/resumes`
-- `GET /api/resumes?userId=1&jobIds=1,2&responsibilityIds=3,4&skillIds=2,5&certificationIds=1&awardIds=1`
+- `GET /api/resumes?userId=1&jobIds=1,2&educationEntryIds=1&responsibilityIds=3,4&skillIds=2,5&certificationIds=1&awardIds=1`
 
 ### AI Suggestions
 
@@ -200,7 +162,7 @@ Content-Type: application/json
 - `POST /api/auth/signup`
 - `POST /api/auth/login`
 
-Example sign up request:
+## Example API Usage
 
 ```http
 POST /api/auth/signup
@@ -215,50 +177,42 @@ Content-Type: application/json
 }
 ```
 
-Example sign in with phone:
-
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "phone": "123-456-7890",
-  "password": "SecurePass123"
-}
-```
-
-Example AI request:
-
 ```http
 POST /api/ai/suggestions
 Content-Type: application/json
 
 {
+  "userId": 1,
   "sourceType": "job responsibility",
   "sourceText": "Worked on reports and helped the team.",
   "apiKey": "optional-one-time-key"
 }
 ```
 
-## Notes About Environment Variables
+## Environment Variable Notes
 
-- `PORT` controls the Express server port.
-- `GEMINI_API_URL` allows you to swap to a different Gemini model endpoint if needed.
-- `GEMINI_API_KEY` is an optional development fallback.
-- `APP_SECRET` is required to encrypt the stored Gemini API key value.
+- `PORT` controls the Express port.
+- `GEMINI_API_URL` allows swapping Gemini model endpoints.
+- `GEMINI_API_KEY` is an optional development fallback and should not be relied on for production deployment.
+- `APP_SECRET` encrypts stored Gemini API key values inside SQLite.
 
 ## Printing and PDF
 
-- The `/builder` page provides live resume assembly.
-- The `/preview` page provides print-friendly output.
-- Print styling hides navigation and UI controls with `@media print`.
-- PDF export uses `jsPDF` in the browser and saves the generated resume as `resume.pdf`.
-- The resume header is automatically populated from the currently signed-in user.
-- The `/builder` page includes a contact toggle that lets the user show email, phone, or both in the resume header.
-- Resume content is user-scoped, so one account does not see another account's jobs, skills, awards, certifications, settings, or saved builder selections.
+- The resume builder route assembles the live preview from selected content.
+- The preview route provides a print-friendly version of the current resume.
+- `@media print` hides non-resume UI.
+- Browser PDF export is handled with local `jsPDF`.
+- The resume header is populated automatically from the signed-in account plus the selected contact mode.
+
+## Assignment Support Files
+
+- [AI_USAGE.md](C:/Users/Ryan/Desktop/ResumeBuilder/AI_USAGE.md) documents generative AI usage, rules, and MCP-related notes.
+- [ACCESSIBILITY.md](C:/Users/Ryan/Desktop/ResumeBuilder/ACCESSIBILITY.md) documents accessibility work and the Lighthouse verification step.
+- [SUBMISSION_NOTES.md](C:/Users/Ryan/Desktop/ResumeBuilder/SUBMISSION_NOTES.md) collects submission-specific notes, sharing permission, and author image guidance.
+- [Agents.md](C:/Users/Ryan/Desktop/ResumeBuilder/Agents.md) contains the rules file used during development.
 
 ## Notes
 
-- Bootstrap and SweetAlert2 are loaded from CDNs because the frontend now uses the hosted browser assets directly.
-- The application uses prepared statements through `sqlite3`.
-- Validation is applied to all user-facing create and update routes.
+- External libraries are loaded from the application directory, not a CDN.
+- All API writes use validated inputs and prepared SQLite statements.
+- The frontend uses SPA navigation while the backend remains a RESTful Express API.

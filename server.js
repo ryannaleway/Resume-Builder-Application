@@ -23,6 +23,7 @@ const fnStartServer = async () => {
   cApp.use(express.static(path.join(__dirname, 'public')));
   cApp.use('/vendor/bootstrap', express.static(path.join(__dirname, 'node_modules', 'bootstrap', 'dist')));
   cApp.use('/vendor/jspdf', express.static(path.join(__dirname, 'node_modules', 'jspdf', 'dist')));
+  cApp.use('/vendor/sweetalert2', express.static(path.join(__dirname, 'node_modules', 'sweetalert2', 'dist')));
 
   cApp.use('/api/jobs', require('./routes/jobRoutes'));
   cApp.use('/api/education', require('./routes/educationRoutes'));
@@ -36,38 +37,10 @@ const fnStartServer = async () => {
   cApp.use('/api/ai', require('./routes/aiRoutes'));
   cApp.use('/api/auth', require('./routes/authRoutes'));
 
-  // Route the page URLs to static HTML files to keep the project easy to follow
-  // for beginners without introducing a template engine.
-  cApp.get('/', (cRequest, cResponse) => {
+  // The frontend is a single-page application, so every user-facing route
+  // sends the same HTML shell and lets the browser-side router swap views.
+  cApp.get(['/', '/jobs', '/skills', '/education', '/credentials', '/builder', '/preview', '/auth'], (cRequest, cResponse) => {
     cResponse.sendFile(path.join(__dirname, 'public', 'index.html'));
-  });
-
-  cApp.get('/jobs', (cRequest, cResponse) => {
-    cResponse.sendFile(path.join(__dirname, 'public', 'jobs.html'));
-  });
-
-  cApp.get('/skills', (cRequest, cResponse) => {
-    cResponse.sendFile(path.join(__dirname, 'public', 'skills.html'));
-  });
-
-  cApp.get('/education', (cRequest, cResponse) => {
-    cResponse.sendFile(path.join(__dirname, 'public', 'education.html'));
-  });
-
-  cApp.get('/credentials', (cRequest, cResponse) => {
-    cResponse.sendFile(path.join(__dirname, 'public', 'credentials.html'));
-  });
-
-  cApp.get('/builder', (cRequest, cResponse) => {
-    cResponse.sendFile(path.join(__dirname, 'public', 'builder.html'));
-  });
-
-  cApp.get('/preview', (cRequest, cResponse) => {
-    cResponse.sendFile(path.join(__dirname, 'public', 'preview.html'));
-  });
-
-  cApp.get('/auth', (cRequest, cResponse) => {
-    cResponse.sendFile(path.join(__dirname, 'public', 'auth.html'));
   });
 
   cApp.use(fnHandleError);

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+const fnLoadDashboardView = async () => {
   try {
     const nUserId = fnGetCurrentUserId();
     const [aJobs, aEducationEntries, aSkills, aCertifications, aAwards] = await Promise.all([
@@ -29,4 +29,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (cError) {
     fnShowAlert('dashboardAlert', cError.message, 'danger');
   }
-});
+};
+
+window.fnInitializeDashboardView = async () => {
+  await fnLoadDashboardView();
+};

@@ -43,7 +43,11 @@ const fnOpenSuggestionModal = async (cTargetFieldId, cSourceType) => {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+window.fnInitializeSuggestionModal = () => {
+  if (window.fnHasViewBeenInitialized('suggestion-modal')) {
+    return;
+  }
+
   const cSuggestionModalElement = document.getElementById('suggestionModal');
 
   if (!cSuggestionModalElement) {
@@ -67,4 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cSuggestionModalInstance.hide();
   });
-});
+
+  window.fnMarkViewInitialized('suggestion-modal');
+};

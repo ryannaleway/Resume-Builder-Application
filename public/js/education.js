@@ -32,74 +32,83 @@ const fnLoadEducationPage = async () => {
   }).join('');
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await fnLoadEducationPage();
+window.fnInitializeEducationView = async () => {
+  if (!window.fnHasViewBeenInitialized('/education')) {
+    document.getElementById('educationForm').addEventListener('submit', async (cEvent) => {
+      cEvent.preventDefault();
+      const oPayload = {
+        userId: fnGetCurrentUserId(),
+        schoolName: document.getElementById('schoolName').value,
+        degreeName: document.getElementById('degreeName').value,
+        majorName: document.getElementById('majorName').value,
+        startDate: document.getElementById('educationStartDate').value,
+        endDate: document.getElementById('educationEndDate').value,
+        location: document.getElementById('educationLocation').value,
+        notes: document.getElementById('educationNotes').value
+      };
 
-  document.getElementById('educationForm').addEventListener('submit', async (cEvent) => {
-    cEvent.preventDefault();
-    const oPayload = {
-      userId: fnGetCurrentUserId(),
-      schoolName: document.getElementById('schoolName').value,
-      degreeName: document.getElementById('degreeName').value,
-      majorName: document.getElementById('majorName').value,
-      startDate: document.getElementById('educationStartDate').value,
-      endDate: document.getElementById('educationEndDate').value,
-      location: document.getElementById('educationLocation').value,
-      notes: document.getElementById('educationNotes').value
-    };
+      try {
+        if (oEducationPageState.nEditingEducationEntryId) {
+          await fnApiRequest(`/api/education/${oEducationPageState.nEditingEducationEntryId}`, {
+            method: 'PUT',
+            body: JSON.stringify(oPayload)
+          });
+        } else {
+          await fnApiRequest('/api/education', {
+            method: 'POST',
+            body: JSON.stringify(oPayload)
+          });
+        }
 
-    try {
-      if (oEducationPageState.nEditingEducationEntryId) {
-        await fnApiRequest(`/api/education/${oEducationPageState.nEditingEducationEntryId}`, {
-          method: 'PUT',
-          body: JSON.stringify(oPayload)
-        });
-      } else {
-        await fnApiRequest('/api/education', {
-          method: 'POST',
-          body: JSON.stringify(oPayload)
-        });
+        cEvent.target.reset();
+        oEducationPageState.nEditingEducationEntryId = null;
+        document.getElementById('educationSubmitButton').textContent = 'Save Education';
+        fnShowAlert('educationAlert', 'Education entry saved successfully.');
+        await fnLoadEducationPage();
+      } catch (cError) {
+        fnShowAlert('educationAlert', cError.message, 'danger');
+      }
+    });
+
+    document.getElementById('educationList').addEventListener('click', async (cEvent) => {
+      const cButton = cEvent.target.closest('button');
+
+      if (!cButton) {
+        return;
       }
 
-      cEvent.target.reset();
-      oEducationPageState.nEditingEducationEntryId = null;
-      document.getElementById('educationSubmitButton').textContent = 'Save Education';
-      fnShowAlert('educationAlert', 'Education entry saved successfully.');
-      await fnLoadEducationPage();
-    } catch (cError) {
-      fnShowAlert('educationAlert', cError.message, 'danger');
-    }
-  });
+      const cAction = cButton.dataset.action;
 
-  document.getElementById('educationList').addEventListener('click', async (cEvent) => {
-    const cButton = cEvent.target.closest('button');
+      if (cAction === 'edit-education') {
+        const oEducationEntry = oAppState.aEducationEntries.find((oItem) => oItem.educationEntryId === Number(cButton.dataset.educationEntryId));
 
-    if (!cButton) {
-      return;
-    }
+        if (!oEducationEntry) {
+          return;
+        }
 
-    const cAction = cButton.dataset.action;
+        oEducationPageState.nEditingEducationEntryId = oEducationEntry.educationEntryId;
+        document.getElementById('schoolName').value = oEducationEntry.schoolName;
+        document.getElementById('degreeName').value = oEducationEntry.degreeName || '';
+        document.getElementById('majorName').value = oEducationEntry.majorName || '';
+        document.getElementById('educationStartDate').value = oEducationEntry.startDate || '';
+        document.getElementById('educationEndDate').value = oEducationEntry.endDate || '';
+        document.getElementById('educationLocation').value = oEducationEntry.location || '';
+        document.getElementById('educationNotes').value = oEducationEntry.notes || '';
+        document.getElementById('educationSubmitButton').textContent = 'Update Education';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
 
-    if (cAction === 'edit-education') {
-      const oEducationEntry = oAppState.aEducationEntries.find((oItem) => oItem.educationEntryId === Number(cButton.dataset.educationEntryId));
-      oEducationPageState.nEditingEducationEntryId = oEducationEntry.educationEntryId;
-      document.getElementById('schoolName').value = oEducationEntry.schoolName;
-      document.getElementById('degreeName').value = oEducationEntry.degreeName || '';
-      document.getElementById('majorName').value = oEducationEntry.majorName || '';
-      document.getElementById('educationStartDate').value = oEducationEntry.startDate || '';
-      document.getElementById('educationEndDate').value = oEducationEntry.endDate || '';
-      document.getElementById('educationLocation').value = oEducationEntry.location || '';
-      document.getElementById('educationNotes').value = oEducationEntry.notes || '';
-      document.getElementById('educationSubmitButton').textContent = 'Update Education';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+      if (cAction === 'delete-education') {
+        await fnApiRequest(`/api/education/${Number(cButton.dataset.educationEntryId)}?userId=${fnGetCurrentUserId()}`, {
+          method: 'DELETE'
+        });
+        fnShowAlert('educationAlert', 'Education entry deleted successfully.');
+        await fnLoadEducationPage();
+      }
+    });
 
-    if (cAction === 'delete-education') {
-      await fnApiRequest(`/api/education/${Number(cButton.dataset.educationEntryId)}?userId=${fnGetCurrentUserId()}`, {
-        method: 'DELETE'
-      });
-      fnShowAlert('educationAlert', 'Education entry deleted successfully.');
-      await fnLoadEducationPage();
-    }
-  });
-});
+    window.fnMarkViewInitialized('/education');
+  }
+
+  await fnLoadEducationPage();
+};

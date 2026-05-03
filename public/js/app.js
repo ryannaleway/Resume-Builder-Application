@@ -1,5 +1,6 @@
 const oAppState = {
   oCurrentUser: null,
+  cCurrentRoute: '/',
   cContactMode: 'email',
   aJobs: [],
   aEducationEntries: [],
@@ -17,6 +18,19 @@ const oAppState = {
     aAwardIds: []
   }
 };
+
+const oRouteMetadata = {
+  '/': { cTitle: 'Dashboard | ResumeForge Builder', bRequiresAuth: true, cUserShell: 'app' },
+  '/jobs': { cTitle: 'Manage Jobs | ResumeForge Builder', bRequiresAuth: true, cUserShell: 'app' },
+  '/education': { cTitle: 'Manage Education | ResumeForge Builder', bRequiresAuth: true, cUserShell: 'app' },
+  '/skills': { cTitle: 'Manage Skills | ResumeForge Builder', bRequiresAuth: true, cUserShell: 'app' },
+  '/credentials': { cTitle: 'Credentials & Settings | ResumeForge Builder', bRequiresAuth: true, cUserShell: 'app' },
+  '/builder': { cTitle: 'Resume Builder | ResumeForge Builder', bRequiresAuth: true, cUserShell: 'app' },
+  '/preview': { cTitle: 'Resume Preview | ResumeForge Builder', bRequiresAuth: true, cUserShell: 'app' },
+  '/auth': { cTitle: 'Sign In | ResumeForge Builder', bRequiresAuth: false, cUserShell: 'auth' }
+};
+
+const oViewInitializationState = {};
 
 const fnGetCurrentUserId = () => {
   const oCurrentUser = fnGetCurrentUser();
@@ -315,7 +329,6 @@ const fnGetSelectionQuery = () => {
   }
 
   cQuery.set('contactMode', oAppState.cContactMode);
-
   cQuery.set('jobIds', oSelections.aJobIds.join(','));
   cQuery.set('educationEntryIds', oSelections.aEducationEntryIds.join(','));
   cQuery.set('responsibilityIds', oSelections.aResponsibilityIds.join(','));
@@ -344,22 +357,169 @@ const fnHydrateAuthUi = () => {
   });
 };
 
-const fnRequireAuthentication = () => {
-  const bRequiresAuth = document.body.dataset.requiresAuth === 'true';
+const fnNormalizeRoute = (cPathname = window.location.pathname) => {
+  const cCleanPath = cPathname.endsWith('/') && cPathname.length > 1 ? cPathname.slice(0, -1) : cPathname;
+  return oRouteMetadata[cCleanPath] ? cCleanPath : '/';
+};
 
-  if (bRequiresAuth && !fnGetCurrentUser()) {
-    window.location.href = '/auth';
+const fnSetActiveNavigation = (cRoute) => {
+  document.querySelectorAll('[data-route-link]').forEach((cLink) => {
+    cLink.classList.toggle('active', cLink.dataset.routeLink === cRoute);
+    cLink.setAttribute('aria-current', cLink.dataset.routeLink === cRoute ? 'page' : 'false');
+  });
+};
+
+const fnToggleShells = (cRoute) => {
+  const oRoute = oRouteMetadata[cRoute] || oRouteMetadata['/'];
+  const cAuthShell = document.getElementById('authShell');
+  const cAppShell = document.getElementById('appShell');
+
+  if (oRoute.cUserShell === 'auth') {
+    cAuthShell.classList.remove('d-none');
+    cAppShell.classList.add('d-none');
+    return;
+  }
+
+  cAuthShell.classList.add('d-none');
+  cAppShell.classList.remove('d-none');
+};
+
+const fnShowView = (cRoute) => {
+  document.querySelectorAll('[data-view]').forEach((cSection) => {
+    cSection.classList.toggle('d-none', cSection.dataset.view !== cRoute);
+  });
+};
+
+const fnEnsureAuthenticatedRoute = (cRoute) => {
+  const oRoute = oRouteMetadata[cRoute] || oRouteMetadata['/'];
+
+  if (oRoute.bRequiresAuth && !fnGetCurrentUser()) {
+    return '/auth';
+  }
+
+  if (cRoute === '/auth' && fnGetCurrentUser()) {
+    return '/';
+  }
+
+  return cRoute;
+};
+
+const fnNavigateToRoute = async (cRoute, bReplaceHistory = false) => {
+  const cTargetRoute = fnEnsureAuthenticatedRoute(fnNormalizeRoute(cRoute));
+
+  if (window.location.pathname !== cTargetRoute) {
+    window.history[bReplaceHistory ? 'replaceState' : 'pushState']({}, '', cTargetRoute);
+  }
+
+  await fnRenderRoute(cTargetRoute);
+};
+
+const fnRenderRoute = async (cRequestedRoute) => {
+  const cRoute = fnEnsureAuthenticatedRoute(fnNormalizeRoute(cRequestedRoute));
+  const oRoute = oRouteMetadata[cRoute] || oRouteMetadata['/'];
+  oAppState.cCurrentRoute = cRoute;
+
+  if (window.location.pathname !== cRoute) {
+    window.history.replaceState({}, '', cRoute);
+  }
+
+  document.title = oRoute.cTitle;
+  fnHydrateAuthUi();
+  fnToggleShells(cRoute);
+  fnShowView(cRoute);
+  fnSetActiveNavigation(cRoute);
+
+  if (typeof window.fnInitializeRouteView === 'function') {
+    await window.fnInitializeRouteView(cRoute);
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  fnRequireAuthentication();
-  fnHydrateAuthUi();
+const fnRegisterNavigation = () => {
+  document.addEventListener('click', async (cEvent) => {
+    const cRouteLink = cEvent.target.closest('[data-route-link]');
+    const cActionButton = cEvent.target.closest('[data-action]');
 
-  document.querySelectorAll('[data-action="logout"]').forEach((cButton) => {
-    cButton.addEventListener('click', () => {
+    if (cRouteLink) {
+      cEvent.preventDefault();
+      await fnNavigateToRoute(cRouteLink.dataset.routeLink);
+      return;
+    }
+
+    if (!cActionButton) {
+      return;
+    }
+
+    if (cActionButton.dataset.action === 'logout') {
       fnClearCurrentUser();
-      window.location.href = '/auth';
-    });
+      await fnNavigateToRoute('/auth', true);
+      return;
+    }
+
+    if (cActionButton.dataset.action === 'open-libraries') {
+      const cLibrariesModalElement = document.getElementById('librariesModal');
+      const cLibrariesModal = bootstrap.Modal.getOrCreateInstance(cLibrariesModalElement);
+      cLibrariesModal.show();
+    }
   });
+
+  window.addEventListener('popstate', async () => {
+    await fnRenderRoute(window.location.pathname);
+  });
+};
+
+window.fnMarkViewInitialized = (cRoute) => {
+  oViewInitializationState[cRoute] = true;
+};
+
+window.fnHasViewBeenInitialized = (cRoute) => {
+  return Boolean(oViewInitializationState[cRoute]);
+};
+
+window.fnInitializeRouteView = async (cRoute) => {
+  if (cRoute === '/auth' && typeof window.fnInitializeAuthView === 'function') {
+    window.fnInitializeAuthView();
+    return;
+  }
+
+  if (cRoute === '/' && typeof window.fnInitializeDashboardView === 'function') {
+    await window.fnInitializeDashboardView();
+    return;
+  }
+
+  if (cRoute === '/jobs' && typeof window.fnInitializeJobsView === 'function') {
+    await window.fnInitializeJobsView();
+    return;
+  }
+
+  if (cRoute === '/education' && typeof window.fnInitializeEducationView === 'function') {
+    await window.fnInitializeEducationView();
+    return;
+  }
+
+  if (cRoute === '/skills' && typeof window.fnInitializeSkillsView === 'function') {
+    await window.fnInitializeSkillsView();
+    return;
+  }
+
+  if (cRoute === '/credentials' && typeof window.fnInitializeCredentialsView === 'function') {
+    await window.fnInitializeCredentialsView();
+    return;
+  }
+
+  if (cRoute === '/builder' && typeof window.fnInitializeBuilderView === 'function') {
+    await window.fnInitializeBuilderView();
+    return;
+  }
+
+  if (cRoute === '/preview' && typeof window.fnInitializePreviewView === 'function') {
+    await window.fnInitializePreviewView();
+  }
+};
+
+window.fnNavigateToRoute = fnNavigateToRoute;
+window.fnRenderRoute = fnRenderRoute;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  fnRegisterNavigation();
+  await fnRenderRoute(window.location.pathname);
 });

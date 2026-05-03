@@ -1,121 +1,120 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const oExistingUser = fnGetCurrentUser();
+const fnFormatPhoneNumberInput = (cInputId) => {
+  const cInput = document.getElementById(cInputId);
 
-  if (oExistingUser) {
-    window.location.href = '/';
+  if (!cInput || cInput.dataset.phoneFormatterAttached === 'true') {
     return;
   }
 
-  const fnFormatPhoneNumberInput = (cInputId) => {
-    const cInput = document.getElementById(cInputId);
+  cInput.dataset.phoneFormatterAttached = 'true';
 
-    if (!cInput) {
-      return;
+  // Auto-format phone number with the 3-3-4 pattern while the user types so
+  // we can keep the UI friendly and also keep validation messages simple.
+  cInput.addEventListener('input', (cEvent) => {
+    let cValue = cEvent.target.value.replace(/\D/g, '');
+
+    if (cValue.length > 10) {
+      cValue = cValue.slice(0, 10);
     }
 
-    // Auto-format phone number with the 3-3-4 pattern while the user types so
-    // we can keep the UI friendly and also keep validation messages simple.
-    cInput.addEventListener('input', (cEvent) => {
-      let cValue = cEvent.target.value.replace(/\D/g, '');
+    if (cValue.length > 6) {
+      cValue = `${cValue.slice(0, 3)}-${cValue.slice(3, 6)}-${cValue.slice(6)}`;
+    } else if (cValue.length > 3) {
+      cValue = `${cValue.slice(0, 3)}-${cValue.slice(3)}`;
+    }
 
-      if (cValue.length > 10) {
-        cValue = cValue.slice(0, 10);
-      }
+    cEvent.target.value = cValue;
+  });
+};
 
-      if (cValue.length > 6) {
-        cValue = `${cValue.slice(0, 3)}-${cValue.slice(3, 6)}-${cValue.slice(6)}`;
-      } else if (cValue.length > 3) {
-        cValue = `${cValue.slice(0, 3)}-${cValue.slice(3)}`;
-      }
+const fnValidateSignUpForm = () => {
+  const aErrors = [];
+  const cFirstName = document.getElementById('txtFirstName').value.trim();
+  const cLastName = document.getElementById('txtLastName').value.trim();
+  const cEmail = document.getElementById('txtEmail').value.trim();
+  const cPhone = document.getElementById('phone').value.trim();
+  const cPassword = document.getElementById('txtPassword').value.trim();
 
-      cEvent.target.value = cValue;
-    });
+  const cNameRegex = /^[A-Za-z\s'-]+$/;
+  const cEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const cPhoneRegex = /^\d{3}-\d{3}-\d{4}$/;
+
+  if (!cFirstName) {
+    aErrors.push('First Name is required.');
+  } else if (!cNameRegex.test(cFirstName)) {
+    aErrors.push('First Name can only contain letters, spaces, apostrophes, and hyphens.');
+  }
+
+  if (!cLastName) {
+    aErrors.push('Last Name is required.');
+  } else if (!cNameRegex.test(cLastName)) {
+    aErrors.push('Last Name can only contain letters, spaces, apostrophes, and hyphens.');
+  }
+
+  if (!cEmail) {
+    aErrors.push('Email Address is required.');
+  } else if (!cEmailRegex.test(cEmail)) {
+    aErrors.push('Email Address must be a valid format (example@domain.com).');
+  }
+
+  if (cPhone && !cPhoneRegex.test(cPhone)) {
+    aErrors.push('Phone Number must be in the format 123-456-7890.');
+  }
+
+  if (!cPassword) {
+    aErrors.push('Password is required.');
+  } else if (cPassword.length < 8) {
+    aErrors.push('Password must be at least 8 characters long.');
+  }
+
+  return {
+    aErrors,
+    cFirstName,
+    cLastName,
+    cEmail,
+    cPhone,
+    cPassword
   };
+};
+
+const fnValidateSignInForm = () => {
+  const aErrors = [];
+  const cEmail = document.getElementById('txtSignInEmail').value.trim();
+  const cPhone = document.getElementById('signInPhone').value.trim();
+  const cPassword = document.getElementById('txtSignInPassword').value.trim();
+  const cEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const cPhoneRegex = /^\d{3}-\d{3}-\d{4}$/;
+
+  if (!cEmail && !cPhone) {
+    aErrors.push('Enter either an Email Address or a Phone Number to sign in.');
+  }
+
+  if (cEmail && !cEmailRegex.test(cEmail)) {
+    aErrors.push('Email Address must be a valid format (example@domain.com).');
+  }
+
+  if (cPhone && !cPhoneRegex.test(cPhone)) {
+    aErrors.push('Phone Number must be in the format 123-456-7890.');
+  }
+
+  if (!cPassword) {
+    aErrors.push('Password is required.');
+  }
+
+  return {
+    aErrors,
+    cEmail,
+    cPhone,
+    cPassword
+  };
+};
+
+window.fnInitializeAuthView = () => {
+  if (window.fnHasViewBeenInitialized('/auth')) {
+    return;
+  }
 
   fnFormatPhoneNumberInput('phone');
   fnFormatPhoneNumberInput('signInPhone');
-
-  const fnValidateSignUpForm = () => {
-    const aErrors = [];
-    const cFirstName = document.getElementById('txtFirstName').value.trim();
-    const cLastName = document.getElementById('txtLastName').value.trim();
-    const cEmail = document.getElementById('txtEmail').value.trim();
-    const cPhone = document.getElementById('phone').value.trim();
-    const cPassword = document.getElementById('txtPassword').value.trim();
-
-    const cNameRegex = /^[A-Za-z\s'-]+$/;
-    const cEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const cPhoneRegex = /^\d{3}-\d{3}-\d{4}$/;
-
-    if (!cFirstName) {
-      aErrors.push('First Name is required.');
-    } else if (!cNameRegex.test(cFirstName)) {
-      aErrors.push('First Name can only contain letters, spaces, apostrophes, and hyphens.');
-    }
-
-    if (!cLastName) {
-      aErrors.push('Last Name is required.');
-    } else if (!cNameRegex.test(cLastName)) {
-      aErrors.push('Last Name can only contain letters, spaces, apostrophes, and hyphens.');
-    }
-
-    if (!cEmail) {
-      aErrors.push('Email Address is required.');
-    } else if (!cEmailRegex.test(cEmail)) {
-      aErrors.push('Email Address must be a valid format (example@domain.com).');
-    }
-
-    if (cPhone && !cPhoneRegex.test(cPhone)) {
-      aErrors.push('Phone Number must be in the format 123-456-7890.');
-    }
-
-    if (!cPassword) {
-      aErrors.push('Password is required.');
-    } else if (cPassword.length < 8) {
-      aErrors.push('Password must be at least 8 characters long.');
-    }
-
-    return {
-      aErrors,
-      cFirstName,
-      cLastName,
-      cEmail,
-      cPhone,
-      cPassword
-    };
-  };
-
-  const fnValidateSignInForm = () => {
-    const aErrors = [];
-    const cEmail = document.getElementById('txtSignInEmail').value.trim();
-    const cPhone = document.getElementById('signInPhone').value.trim();
-    const cPassword = document.getElementById('txtSignInPassword').value.trim();
-    const cEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const cPhoneRegex = /^\d{3}-\d{3}-\d{4}$/;
-
-    if (!cEmail && !cPhone) {
-      aErrors.push('Enter either an Email Address or a Phone Number to sign in.');
-    }
-
-    if (cEmail && !cEmailRegex.test(cEmail)) {
-      aErrors.push('Email Address must be a valid format (example@domain.com).');
-    }
-
-    if (cPhone && !cPhoneRegex.test(cPhone)) {
-      aErrors.push('Phone Number must be in the format 123-456-7890.');
-    }
-
-    if (!cPassword) {
-      aErrors.push('Password is required.');
-    }
-
-    return {
-      aErrors,
-      cEmail,
-      cPhone,
-      cPassword
-    };
-  };
 
   document.getElementById('signUpForm').addEventListener('submit', async (cEvent) => {
     cEvent.preventDefault();
@@ -148,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         title: 'Account created',
         text: 'Your profile information will now appear in the resume header.'
       });
-      window.location.href = '/';
+      await fnNavigateToRoute('/', true);
     } catch (cError) {
       await Swal.fire({
         icon: 'error',
@@ -187,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         title: 'Signed in',
         text: 'Welcome back.'
       });
-      window.location.href = '/';
+      await fnNavigateToRoute('/', true);
     } catch (cError) {
       await Swal.fire({
         icon: 'error',
@@ -196,4 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
-});
+
+  window.fnMarkViewInitialized('/auth');
+};

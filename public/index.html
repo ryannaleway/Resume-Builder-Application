@@ -3,115 +3,613 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resume Builder Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>ResumeForge Builder</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/resumeforge-icon.svg">
+  <link rel="apple-touch-icon" href="/assets/resumeforge-icon.svg">
+  <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/vendor/sweetalert2/sweetalert2.min.css">
   <link rel="stylesheet" href="/css/styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body data-requires-auth="true">
-  <div class="page-shell" id="pageInteractionShell">
+<body>
+  <main id="authShell" class="container py-5 d-none" aria-live="polite">
+    <div class="row justify-content-center">
+      <div class="col-xl-10">
+        <div class="card border-0 shadow-sm overflow-hidden">
+          <div class="row g-0">
+            <div class="col-lg-5 brand-panel text-white p-4 p-lg-5">
+              <img src="/assets/resumeforge-icon.svg" alt="ResumeForge Builder shield icon" class="brand-mark mb-3">
+              <p class="text-uppercase fw-semibold mb-2">ResumeForge Builder</p>
+              <h1 class="display-6 fw-bold">Create polished resumes while focusing on content, not formatting.</h1>
+              <p class="mb-0">Your name and contact details are stored once, then automatically reused throughout the resume preview and export flow.</p>
+            </div>
+            <div class="col-lg-7 p-4 p-lg-5 bg-white">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                <div>
+                  <p class="text-uppercase text-primary fw-semibold mb-1">Account Access</p>
+                  <h2 class="h3 mb-0">Sign up or sign in</h2>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#librariesModal">Libraries Used</button>
+              </div>
+
+              <ul class="nav nav-pills mb-4" id="authTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="signup-tab" data-bs-toggle="pill" data-bs-target="#signup-pane" type="button" role="tab" aria-controls="signup-pane" aria-selected="true">Sign Up</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="signin-tab" data-bs-toggle="pill" data-bs-target="#signin-pane" type="button" role="tab" aria-controls="signin-pane" aria-selected="false">Sign In</button>
+                </li>
+              </ul>
+
+              <div class="tab-content">
+                <section class="tab-pane fade show active" id="signup-pane" role="tabpanel" aria-labelledby="signup-tab">
+                  <form id="signUpForm">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="txtFirstName">First Name</label>
+                        <input class="form-control form-control-lg" id="txtFirstName" aria-label="First Name" aria-required="true" required>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="txtLastName">Last Name</label>
+                        <input class="form-control form-control-lg" id="txtLastName" aria-label="Last Name" aria-required="true" required>
+                      </div>
+                    </div>
+                    <div class="mt-3">
+                      <label class="form-label fw-semibold mt-3" for="txtEmail">Email Address</label>
+                      <input class="form-control form-control-lg" id="txtEmail" type="email" aria-label="Email Address" aria-required="true" required>
+                    </div>
+                    <div class="mt-3">
+                      <label class="form-label fw-semibold mt-3" for="phone">Phone Number<br>
+                        <small class="text-muted">Format: 123-456-7890</small>
+                      </label>
+                      <input class="form-control form-control-lg" id="phone" type="tel" name="phone" placeholder="123-456-7890" aria-label="Phone Number" maxlength="12">
+                    </div>
+                    <div class="mt-3">
+                      <label class="form-label fw-semibold" for="txtPassword">Password</label>
+                      <input class="form-control form-control-lg" id="txtPassword" type="password" aria-label="Password" aria-required="true" required>
+                    </div>
+                    <button class="btn btn-primary mt-4" type="submit">Create Account</button>
+                  </form>
+                </section>
+
+                <section class="tab-pane fade" id="signin-pane" role="tabpanel" aria-labelledby="signin-tab">
+                  <form id="signInForm">
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold mt-3" for="txtSignInEmail">Email Address</label>
+                      <input class="form-control form-control-lg" id="txtSignInEmail" type="email" aria-label="Email Address">
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold mt-3" for="signInPhone">Phone Number<br>
+                        <small class="text-muted">Format: 123-456-7890</small>
+                      </label>
+                      <input class="form-control form-control-lg" id="signInPhone" type="tel" name="signInPhone" placeholder="123-456-7890" aria-label="Phone Number" maxlength="12">
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold" for="txtSignInPassword">Password</label>
+                      <input class="form-control form-control-lg" id="txtSignInPassword" type="password" aria-label="Sign in password" aria-required="true" required>
+                    </div>
+                    <button class="btn btn-outline-primary" type="submit">Sign In</button>
+                  </form>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="page-shell d-none" id="appShell">
     <nav class="navbar navbar-expand-lg bg-white border-bottom no-print">
       <div class="container">
-        <a class="navbar-brand fw-bold" href="/">Resume Builder</a>
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/" data-route-link="/">
+          <img src="/assets/resumeforge-icon.svg" alt="ResumeForge Builder logo" class="nav-brand-icon">
+          <span>ResumeForge Builder</span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link active" href="/">Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="/jobs">Manage Jobs</a></li>
-            <li class="nav-item"><a class="nav-link" href="/education">Manage Education</a></li>
-            <li class="nav-item"><a class="nav-link" href="/skills">Manage Skills</a></li>
-            <li class="nav-item"><a class="nav-link" href="/credentials">Certifications & Awards</a></li>
-            <li class="nav-item"><a class="nav-link" href="/builder">Resume Builder</a></li>
-            <li class="nav-item"><a class="nav-link" href="/preview">Resume Preview</a></li>
+          <ul class="navbar-nav ms-auto align-items-lg-center">
+            <li class="nav-item"><a class="nav-link" href="/" data-route-link="/">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="/jobs" data-route-link="/jobs">Manage Jobs</a></li>
+            <li class="nav-item"><a class="nav-link" href="/education" data-route-link="/education">Manage Education</a></li>
+            <li class="nav-item"><a class="nav-link" href="/skills" data-route-link="/skills">Manage Skills</a></li>
+            <li class="nav-item"><a class="nav-link" href="/credentials" data-route-link="/credentials">Certifications & Awards</a></li>
+            <li class="nav-item"><a class="nav-link" href="/builder" data-route-link="/builder">Resume Builder</a></li>
+            <li class="nav-item"><a class="nav-link" href="/preview" data-route-link="/preview">Resume Preview</a></li>
             <li class="nav-item"><span class="nav-link" data-user-name></span></li>
+            <li class="nav-item"><button class="btn btn-outline-secondary btn-sm ms-lg-2" data-action="open-libraries" type="button">Libraries Used</button></li>
             <li class="nav-item"><button class="btn btn-outline-secondary btn-sm ms-lg-2" data-action="logout" type="button">Log Out</button></li>
           </ul>
         </div>
       </div>
     </nav>
 
-    <main class="container py-5">
-      <div id="dashboardAlert" aria-live="polite"></div>
-      <header class="mb-5">
-        <p class="text-uppercase text-primary fw-semibold mb-2">Dashboard</p>
-        <h1 class="display-5 fw-bold">Build polished resumes from reusable career content.</h1>
-        <p class="lead mb-0">Store work history, education, skills, certifications, and awards once, then mix and match the strongest content for each opportunity.</p>
-      </header>
+    <main class="container-fluid px-3 px-lg-4 py-4" id="pageInteractionShell">
+      <div id="globalAlert" aria-live="polite"></div>
 
-      <section class="row g-4 mb-5">
-        <div class="col-md-6 col-lg col-xl">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <p class="text-uppercase text-body-secondary small mb-2">Jobs</p>
-              <p class="display-6 fw-bold mb-0" id="jobCount">0</p>
+      <section data-view="/" class="spa-view">
+        <div id="dashboardAlert" aria-live="polite"></div>
+        <header class="mb-5">
+          <p class="text-uppercase text-primary fw-semibold mb-2">Dashboard</p>
+          <h1 class="display-5 fw-bold">Build polished resumes from reusable career content.</h1>
+          <p class="lead mb-0">Store work history, education, skills, certifications, and awards once, then mix and match the strongest content for each opportunity.</p>
+        </header>
+
+        <section class="row g-4 mb-5">
+          <div class="col-sm-6 col-lg">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <p class="text-uppercase text-body-secondary small mb-2">Jobs</p>
+                <p class="display-6 fw-bold mb-0" id="jobCount">0</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-md-6 col-lg col-xl">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <p class="text-uppercase text-body-secondary small mb-2">Education</p>
-              <p class="display-6 fw-bold mb-0" id="educationCount">0</p>
+          <div class="col-sm-6 col-lg">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <p class="text-uppercase text-body-secondary small mb-2">Education</p>
+                <p class="display-6 fw-bold mb-0" id="educationCount">0</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-md-6 col-lg col-xl">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <p class="text-uppercase text-body-secondary small mb-2">Skills</p>
-              <p class="display-6 fw-bold mb-0" id="skillCount">0</p>
+          <div class="col-sm-6 col-lg">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <p class="text-uppercase text-body-secondary small mb-2">Skills</p>
+                <p class="display-6 fw-bold mb-0" id="skillCount">0</p>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-md-6 col-lg col-xl">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <p class="text-uppercase text-body-secondary small mb-2">Certifications</p>
-              <p class="display-6 fw-bold mb-0" id="certificationCount">0</p>
+          <div class="col-sm-6 col-lg">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <p class="text-uppercase text-body-secondary small mb-2">Certifications</p>
+                <p class="display-6 fw-bold mb-0" id="certificationCount">0</p>
+              </div>
             </div>
           </div>
+          <div class="col-sm-6 col-lg">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <p class="text-uppercase text-body-secondary small mb-2">Awards</p>
+                <p class="display-6 fw-bold mb-0" id="awardCount">0</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="row g-4">
+          <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4">
+                <h2 class="h4">Suggested workflow</h2>
+                <ol class="mb-0">
+                  <li class="mb-2">Add jobs and break each role into accomplishment-focused responsibilities.</li>
+                  <li class="mb-2">Add education entries for college, high school, trade school, bootcamps, and other training.</li>
+                  <li class="mb-2">Organize skills into categories that are easy to scan.</li>
+                  <li class="mb-2">Save certifications, awards, and your Gemini API key.</li>
+                  <li class="mb-0">Use the builder page to assemble a targeted resume and preview the print-friendly result.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body p-4">
+                <h2 class="h4">Recent jobs</h2>
+                <ul class="list-group list-group-flush" id="recentContent" aria-live="polite"></ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section data-view="/jobs" class="spa-view d-none">
+        <header class="mb-4">
+          <p class="text-uppercase text-primary fw-semibold mb-2">Manage Jobs</p>
+          <h1 class="display-6 fw-bold">Capture job history and achievement-driven responsibilities.</h1>
+        </header>
+
+        <div class="row g-4">
+          <div class="col-lg-5">
+            <div id="jobsAlert" aria-live="polite"></div>
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-body p-4">
+                <h2 class="h4">Job details</h2>
+                <form id="jobForm">
+                  <div class="mb-3">
+                    <label class="form-label" for="jobTitle">Title</label>
+                    <input class="form-control" id="jobTitle" aria-label="Job title" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="jobCompany">Company</label>
+                    <input class="form-control" id="jobCompany" aria-label="Company name" required>
+                  </div>
+                  <div class="row g-3">
+                    <div class="col-sm-6">
+                      <label class="form-label" for="jobStartDate">Start date</label>
+                      <input class="form-control" id="jobStartDate" type="month" aria-label="Job start date" required>
+                    </div>
+                    <div class="col-sm-6">
+                      <label class="form-label" for="jobEndDate">End date</label>
+                      <input class="form-control" id="jobEndDate" type="month" aria-label="Job end date">
+                    </div>
+                  </div>
+                  <div class="my-3">
+                    <label class="form-label" for="jobLocation">Location</label>
+                    <input class="form-control" id="jobLocation" aria-label="Job location">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="jobSummary">Summary</label>
+                    <textarea class="form-control" id="jobSummary" rows="4" aria-label="Job summary"></textarea>
+                  </div>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" id="jobSubmitButton" type="submit">Save Job</button>
+                    <button class="btn btn-outline-success" id="jobSuggestionButton" type="button">AI Improve Summary</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div id="responsibilitiesAlert" aria-live="polite"></div>
+            <div class="card border-0 shadow-sm">
+              <div class="card-body p-4">
+                <h2 class="h4">Responsibilities</h2>
+                <form id="responsibilityForm">
+                  <div class="mb-3">
+                    <label class="form-label" for="responsibilityJobId">Job</label>
+                    <select class="form-select" id="responsibilityJobId" aria-label="Responsibility job selection" required></select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="responsibilityDescription">Description</label>
+                    <textarea class="form-control" id="responsibilityDescription" rows="4" aria-label="Responsibility description" required></textarea>
+                  </div>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" id="responsibilitySubmitButton" type="submit">Save Responsibility</button>
+                    <button class="btn btn-outline-success" id="responsibilitySuggestionButton" type="button">AI Improve Responsibility</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-7">
+            <div id="jobList" aria-live="polite"></div>
+          </div>
         </div>
-        <div class="col-md-6 col-lg col-xl">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <p class="text-uppercase text-body-secondary small mb-2">Awards</p>
-              <p class="display-6 fw-bold mb-0" id="awardCount">0</p>
+      </section>
+
+      <section data-view="/education" class="spa-view d-none">
+        <header class="mb-4">
+          <p class="text-uppercase text-primary fw-semibold mb-2">Manage Education</p>
+          <h1 class="display-6 fw-bold">Document college, high school, trade school, bootcamps, and other learning experience.</h1>
+          <p class="lead mb-0">Add degrees, majors, schools, dates, locations, and notes so your education section is just as tailored as your work history.</p>
+        </header>
+
+        <div class="row g-4">
+          <div class="col-lg-5">
+            <div id="educationAlert" aria-live="polite"></div>
+            <div class="card border-0 shadow-sm">
+              <div class="card-body p-4">
+                <h2 class="h4">Education details</h2>
+                <form id="educationForm">
+                  <div class="mb-3">
+                    <label class="form-label" for="schoolName">School or Program Name</label>
+                    <input class="form-control" id="schoolName" aria-label="School or program name" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="degreeName">Degree / Credential</label>
+                    <input class="form-control" id="degreeName" aria-label="Degree or credential">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="majorName">Major / Field of Study</label>
+                    <input class="form-control" id="majorName" aria-label="Major or field of study">
+                  </div>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label" for="educationStartDate">Start date</label>
+                      <input class="form-control" id="educationStartDate" type="month" aria-label="Education start date">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="educationEndDate">End date</label>
+                      <input class="form-control" id="educationEndDate" type="month" aria-label="Education end date">
+                    </div>
+                  </div>
+                  <div class="my-3">
+                    <label class="form-label" for="educationLocation">Location</label>
+                    <input class="form-control" id="educationLocation" aria-label="Education location">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="educationNotes">Notes</label>
+                    <textarea class="form-control" id="educationNotes" rows="4" aria-label="Education notes"></textarea>
+                  </div>
+                  <button class="btn btn-primary" id="educationSubmitButton" type="submit">Save Education</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-7">
+            <div id="educationList" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-view="/skills" class="spa-view d-none">
+        <header class="mb-4">
+          <p class="text-uppercase text-primary fw-semibold mb-2">Manage Skills</p>
+          <h1 class="display-6 fw-bold">Organize skills so each resume can emphasize the right strengths.</h1>
+        </header>
+
+        <div id="skillsAlert" aria-live="polite"></div>
+        <div class="row g-4">
+          <div class="col-lg-5">
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-body p-4">
+                <h2 class="h4">Skill category</h2>
+                <form id="categoryForm">
+                  <div class="mb-3">
+                    <label class="form-label" for="categoryName">Category name</label>
+                    <input class="form-control" id="categoryName" aria-label="Skill category name" required>
+                  </div>
+                  <button class="btn btn-primary" id="categorySubmitButton" type="submit">Save Category</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+              <div class="card-body p-4">
+                <h2 class="h4">Skill</h2>
+                <form id="skillForm">
+                  <div class="mb-3">
+                    <label class="form-label" for="skillCategoryId">Category</label>
+                    <select class="form-select" id="skillCategoryId" aria-label="Skill category selection" required></select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="skillName">Skill name</label>
+                    <input class="form-control" id="skillName" aria-label="Skill name" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="skillProficiency">Proficiency</label>
+                    <input class="form-control" id="skillProficiency" aria-label="Skill proficiency">
+                  </div>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" id="skillSubmitButton" type="submit">Save Skill</button>
+                    <button class="btn btn-outline-success" id="skillSuggestionButton" type="button">AI Improve Skill</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-7">
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-body p-4">
+                <h2 class="h4">Categories</h2>
+                <ul class="list-group" id="categoryList" aria-live="polite"></ul>
+              </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+              <div class="card-body p-4">
+                <h2 class="h4">Skills</h2>
+                <ul class="list-group" id="skillList" aria-live="polite"></ul>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="row g-4">
-        <div class="col-lg-7">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <h2 class="h4">Suggested workflow</h2>
-              <ol class="mb-0">
-                <li class="mb-2">Add jobs and break each role into accomplishment-focused responsibilities.</li>
-                <li class="mb-2">Add education entries for college, high school, trade school, bootcamps, etc, to your resume.</li>
-                <li class="mb-2">Organize skills into categories that are easy to scan.</li>
-                <li class="mb-2">Save certifications, awards, and your Gemini API key.</li>
-                <li class="mb-0">Use the builder page to assemble a targeted resume and preview the print-friendly result.</li>
-              </ol>
+      <section data-view="/credentials" class="spa-view d-none">
+        <header class="mb-4">
+          <p class="text-uppercase text-primary fw-semibold mb-2">Credentials & Settings</p>
+          <h1 class="display-6 fw-bold">Manage supporting credentials and your Gemini API key.</h1>
+        </header>
+
+        <div class="row g-4">
+          <div class="col-xl-4">
+            <div id="settingsAlert" aria-live="polite"></div>
+            <div class="card border-0 shadow-sm">
+              <div class="card-body p-4">
+                <h2 class="h4">Gemini API key</h2>
+                <p class="text-body-secondary">The key is encrypted before it is stored in SQLite. You can also provide a one-time key inside the AI suggestion modal.</p>
+                <form id="settingsForm">
+                  <div class="mb-3">
+                    <label class="form-label" for="geminiApiKey">API key</label>
+                    <input class="form-control" id="geminiApiKey" aria-label="Gemini API key" required>
+                  </div>
+                  <button class="btn btn-primary" type="submit">Save API Key</button>
+                </form>
+                <p class="mt-3 mb-0 text-success" id="savedKeyStatus" aria-live="polite"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-8">
+            <div id="credentialsAlert" aria-live="polite"></div>
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                  <div class="card-body p-4">
+                    <h2 class="h4">Certifications</h2>
+                    <form id="certificationForm" class="mb-4">
+                      <div class="mb-3">
+                        <label class="form-label" for="certificationName">Certification name</label>
+                        <input class="form-control" id="certificationName" aria-label="Certification name" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label" for="certificationOrganization">Issuing organization</label>
+                        <input class="form-control" id="certificationOrganization" aria-label="Certification issuing organization" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label" for="certificationDate">Issued date</label>
+                        <input class="form-control" id="certificationDate" type="month" aria-label="Certification issued date">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label" for="certificationDescription">Description</label>
+                        <textarea class="form-control" id="certificationDescription" rows="3" aria-label="Certification description"></textarea>
+                      </div>
+                      <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" id="certificationSubmitButton" type="submit">Save Certification</button>
+                        <button class="btn btn-outline-success" id="certificationSuggestionButton" type="button">AI Improve Description</button>
+                      </div>
+                    </form>
+                    <ul class="list-group" id="certificationList" aria-live="polite"></ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                  <div class="card-body p-4">
+                    <h2 class="h4">Awards</h2>
+                    <form id="awardForm" class="mb-4">
+                      <div class="mb-3">
+                        <label class="form-label" for="awardName">Award name</label>
+                        <input class="form-control" id="awardName" aria-label="Award name" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label" for="awardOrganization">Issuing organization</label>
+                        <input class="form-control" id="awardOrganization" aria-label="Award issuing organization" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label" for="awardDate">Awarded date</label>
+                        <input class="form-control" id="awardDate" type="month" aria-label="Award date">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label" for="awardDescription">Description</label>
+                        <textarea class="form-control" id="awardDescription" rows="3" aria-label="Award description"></textarea>
+                      </div>
+                      <button class="btn btn-primary" id="awardSubmitButton" type="submit">Save Award</button>
+                    </form>
+                    <ul class="list-group" id="awardList" aria-live="polite"></ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-lg-5">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-              <h2 class="h4">Recent jobs</h2>
-              <ul class="list-group list-group-flush" id="recentContent" aria-live="polite"></ul>
+      </section>
+
+      <section data-view="/builder" class="spa-view d-none">
+        <div class="row g-4">
+          <div class="col-xl-4 no-print">
+            <div class="card border-0 shadow-sm selection-panel">
+              <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                  <div>
+                    <p class="text-uppercase text-primary fw-semibold mb-1">Resume Builder</p>
+                    <h1 class="h3 mb-0">Choose the content to include</h1>
+                  </div>
+                  <button class="btn btn-primary" id="openPreviewButton" type="button">Open Full Preview</button>
+                </div>
+                <div class="mb-4">
+                  <label class="form-label fw-semibold" for="resumeContactMode">Resume Header Contact</label>
+                  <select class="form-select" id="resumeContactMode" aria-label="Resume header contact mode">
+                    <option value="email">Show Email</option>
+                    <option value="phone">Show Phone</option>
+                    <option value="both">Show Both</option>
+                  </select>
+                </div>
+                <div class="mb-4">
+                  <label class="form-label fw-semibold" for="resumeTargetRole">Target Role / Resume Title</label>
+                  <input class="form-control" id="resumeTargetRole" aria-label="Resume target role">
+                </div>
+                <div class="mb-4">
+                  <label class="form-label fw-semibold" for="resumeObjective">Professional Summary</label>
+                  <textarea class="form-control" id="resumeObjective" rows="5" aria-label="Resume professional summary"></textarea>
+                </div>
+                <div class="d-grid mb-4">
+                  <button class="btn btn-outline-primary" id="saveResumeProfileButton" type="button">Save Resume Header</button>
+                </div>
+                <div id="selectionPanel" aria-live="polite"></div>
+              </div>
             </div>
           </div>
+          <div class="col-xl-8">
+            <div id="resumePreviewContainer" aria-live="polite"></div>
+          </div>
         </div>
+      </section>
+
+      <section data-view="/preview" class="spa-view d-none">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 no-print">
+          <div>
+            <p class="text-uppercase text-primary fw-semibold mb-1">Preview</p>
+            <h1 class="h3 mb-0">Print-friendly resume output</h1>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" id="printResumeButton" type="button">Print Resume</button>
+            <button class="btn btn-primary" id="downloadPdfButton" type="button">Download PDF</button>
+          </div>
+        </div>
+
+        <div id="fullResumePreview" aria-live="polite"></div>
       </section>
     </main>
+
+    <footer class="border-top bg-white no-print">
+      <div class="container py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <p class="mb-0 text-body-secondary">ResumeForge Builder helps students focus on strong content while maintaining consistent formatting.</p>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#librariesModal">Thanks To Our Libraries</button>
+      </div>
+    </footer>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <div class="modal fade" id="suggestionModal" tabindex="-1" aria-labelledby="suggestionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="suggestionModalLabel">AI Suggestions</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close suggestion modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label" for="inlineGeminiApiKey">Optional Gemini API key for this request</label>
+            <input class="form-control" id="inlineGeminiApiKey" aria-label="Temporary Gemini API key">
+          </div>
+          <div id="suggestionsList" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="librariesModal" tabindex="-1" aria-labelledby="librariesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="librariesModalLabel">Thank You To Our Libraries</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close libraries modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>This application was built locally with open-source libraries and tools that made the project easier to learn, organize, and ship.</p>
+          <ul class="list-group">
+            <li class="list-group-item"><strong>Bootstrap 5</strong> for responsive layout, spacing, and accessible UI components.</li>
+            <li class="list-group-item"><strong>SweetAlert2</strong> for friendly modal alerts during authentication and validation.</li>
+            <li class="list-group-item"><strong>jsPDF</strong> for browser-based resume PDF export.</li>
+            <li class="list-group-item"><strong>Express</strong> for RESTful Node.js web services.</li>
+            <li class="list-group-item"><strong>sqlite3</strong> for local SQLite database access.</li>
+            <li class="list-group-item"><strong>Google Gemini API</strong> for AI-powered wording suggestions.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
+  <script src="/vendor/jspdf/jspdf.umd.min.js"></script>
   <script src="/js/app.js"></script>
+  <script src="/js/suggestions.js"></script>
+  <script src="/js/auth.js"></script>
   <script src="/js/dashboard.js"></script>
+  <script src="/js/jobs.js"></script>
+  <script src="/js/education.js"></script>
+  <script src="/js/skills.js"></script>
+  <script src="/js/credentials.js"></script>
+  <script src="/js/credentialsData.js"></script>
+  <script src="/js/builder.js"></script>
+  <script src="/js/preview.js"></script>
 </body>
 </html>

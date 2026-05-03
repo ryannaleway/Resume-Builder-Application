@@ -7,6 +7,24 @@ body {
   min-height: 100vh;
 }
 
+.spa-view {
+  min-height: 60vh;
+}
+
+.brand-panel {
+  background: linear-gradient(160deg, #0d6efd 0%, #073984 100%);
+}
+
+.brand-mark {
+  width: 64px;
+  height: 64px;
+}
+
+.nav-brand-icon {
+  width: 28px;
+  height: 28px;
+}
+
 .resume-paper {
   background: #ffffff;
   box-shadow: 0 1rem 3rem rgba(15, 23, 42, 0.12);
@@ -32,6 +50,18 @@ body {
 @media print {
   body {
     background: #ffffff;
+  }
+
+  #appShell {
+    display: block !important;
+  }
+
+  .spa-view {
+    display: none !important;
+  }
+
+  .spa-view[data-view="/preview"] {
+    display: block !important;
   }
 
   .no-print {

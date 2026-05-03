@@ -137,9 +137,6 @@ const fnSaveResumeHeaderSettings = async () => {
   const cTargetRole = document.getElementById('resumeTargetRole').value.trim();
   const cObjective = document.getElementById('resumeObjective').value.trim();
 
-  // Save the title and about/objective independently so users can revise one
-  // field without affecting the other and so the resume model can reuse the
-  // existing settings mechanism that is already user-scoped.
   await fnApiRequest('/api/settings', {
     method: 'PUT',
     body: JSON.stringify({
@@ -159,7 +156,7 @@ const fnSaveResumeHeaderSettings = async () => {
   });
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
+const fnLoadBuilderData = async () => {
   fnLoadSelections();
   fnLoadContactMode();
   const cContactModeField = document.getElementById('resumeContactMode');
@@ -208,30 +205,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   fnRenderSelectionCards();
   await fnRefreshResumePreview();
+};
 
-  document.getElementById('selectionPanel').addEventListener('change', async (cEvent) => {
-    if (cEvent.target.classList.contains('selection-control')) {
+window.fnInitializeBuilderView = async () => {
+  if (!window.fnHasViewBeenInitialized('/builder')) {
+    document.getElementById('selectionPanel').addEventListener('change', async (cEvent) => {
+      if (cEvent.target.classList.contains('selection-control')) {
+        await fnRefreshResumePreview();
+      }
+    });
+
+    document.getElementById('resumeContactMode').addEventListener('change', async (cEvent) => {
+      oAppState.cContactMode = cEvent.target.value;
+      fnPersistContactMode();
       await fnRefreshResumePreview();
-    }
-  });
+    });
 
-  cContactModeField.addEventListener('change', async (cEvent) => {
-    oAppState.cContactMode = cEvent.target.value;
-    fnPersistContactMode();
-    await fnRefreshResumePreview();
-  });
+    document.getElementById('saveResumeProfileButton').addEventListener('click', async () => {
+      try {
+        await fnSaveResumeHeaderSettings();
+        fnShowAlert('globalAlert', 'Resume header details saved successfully.');
+        await fnRefreshResumePreview();
+      } catch (cError) {
+        fnShowAlert('globalAlert', cError.message, 'danger');
+      }
+    });
 
-  document.getElementById('saveResumeProfileButton').addEventListener('click', async () => {
-    try {
-      await fnSaveResumeHeaderSettings();
-      fnShowAlert('globalAlert', 'Resume header details saved successfully.');
-      await fnRefreshResumePreview();
-    } catch (cError) {
-      fnShowAlert('globalAlert', cError.message, 'danger');
-    }
-  });
+    document.getElementById('openPreviewButton').addEventListener('click', async () => {
+      await fnNavigateToRoute('/preview');
+    });
 
-  document.getElementById('openPreviewButton').addEventListener('click', () => {
-    window.location.href = '/preview';
-  });
-});
+    window.fnMarkViewInitialized('/builder');
+  }
+
+  await fnLoadBuilderData();
+};

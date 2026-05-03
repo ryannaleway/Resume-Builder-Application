@@ -54,141 +54,147 @@ const fnLoadJobsPage = async () => {
   }).join('');
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const cJobForm = document.getElementById('jobForm');
-  const cResponsibilityForm = document.getElementById('responsibilityForm');
-  const cJobList = document.getElementById('jobList');
+window.fnInitializeJobsView = async () => {
+  window.fnInitializeSuggestionModal();
 
-  await fnLoadJobsPage();
+  if (!window.fnHasViewBeenInitialized('/jobs')) {
+    const cJobForm = document.getElementById('jobForm');
+    const cResponsibilityForm = document.getElementById('responsibilityForm');
+    const cJobList = document.getElementById('jobList');
 
-  cJobForm.addEventListener('submit', async (cEvent) => {
-    cEvent.preventDefault();
-    fnClearAlert('jobsAlert');
+    cJobForm.addEventListener('submit', async (cEvent) => {
+      cEvent.preventDefault();
+      fnClearAlert('jobsAlert');
 
-    const oPayload = {
-      userId: fnGetCurrentUserId(),
-      title: document.getElementById('jobTitle').value,
-      company: document.getElementById('jobCompany').value,
-      startDate: document.getElementById('jobStartDate').value,
-      endDate: document.getElementById('jobEndDate').value || 'Present',
-      location: document.getElementById('jobLocation').value,
-      summary: document.getElementById('jobSummary').value
-    };
+      const oPayload = {
+        userId: fnGetCurrentUserId(),
+        title: document.getElementById('jobTitle').value,
+        company: document.getElementById('jobCompany').value,
+        startDate: document.getElementById('jobStartDate').value,
+        endDate: document.getElementById('jobEndDate').value || 'Present',
+        location: document.getElementById('jobLocation').value,
+        summary: document.getElementById('jobSummary').value
+      };
 
-    try {
-      if (oJobsPageState.nEditingJobId) {
-        await fnApiRequest(`/api/jobs/${oJobsPageState.nEditingJobId}`, {
-          method: 'PUT',
-          body: JSON.stringify(oPayload)
-        });
-      } else {
-        await fnApiRequest('/api/jobs', {
-          method: 'POST',
-          body: JSON.stringify(oPayload)
-        });
+      try {
+        if (oJobsPageState.nEditingJobId) {
+          await fnApiRequest(`/api/jobs/${oJobsPageState.nEditingJobId}`, {
+            method: 'PUT',
+            body: JSON.stringify(oPayload)
+          });
+        } else {
+          await fnApiRequest('/api/jobs', {
+            method: 'POST',
+            body: JSON.stringify(oPayload)
+          });
+        }
+
+        cJobForm.reset();
+        oJobsPageState.nEditingJobId = null;
+        document.getElementById('jobSubmitButton').textContent = 'Save Job';
+        fnShowAlert('jobsAlert', 'Job saved successfully.');
+        await fnLoadJobsPage();
+      } catch (cError) {
+        fnShowAlert('jobsAlert', cError.message, 'danger');
       }
+    });
 
-      cJobForm.reset();
-      oJobsPageState.nEditingJobId = null;
-      document.getElementById('jobSubmitButton').textContent = 'Save Job';
-      fnShowAlert('jobsAlert', 'Job saved successfully.');
-      await fnLoadJobsPage();
-    } catch (cError) {
-      fnShowAlert('jobsAlert', cError.message, 'danger');
-    }
-  });
+    cResponsibilityForm.addEventListener('submit', async (cEvent) => {
+      cEvent.preventDefault();
+      fnClearAlert('responsibilitiesAlert');
 
-  cResponsibilityForm.addEventListener('submit', async (cEvent) => {
-    cEvent.preventDefault();
-    fnClearAlert('responsibilitiesAlert');
+      const oPayload = {
+        userId: fnGetCurrentUserId(),
+        jobId: document.getElementById('responsibilityJobId').value,
+        description: document.getElementById('responsibilityDescription').value
+      };
 
-    const oPayload = {
-      userId: fnGetCurrentUserId(),
-      jobId: document.getElementById('responsibilityJobId').value,
-      description: document.getElementById('responsibilityDescription').value
-    };
+      try {
+        if (oJobsPageState.nEditingResponsibilityId) {
+          await fnApiRequest(`/api/responsibilities/${oJobsPageState.nEditingResponsibilityId}`, {
+            method: 'PUT',
+            body: JSON.stringify(oPayload)
+          });
+        } else {
+          await fnApiRequest('/api/responsibilities', {
+            method: 'POST',
+            body: JSON.stringify(oPayload)
+          });
+        }
 
-    try {
-      if (oJobsPageState.nEditingResponsibilityId) {
-        await fnApiRequest(`/api/responsibilities/${oJobsPageState.nEditingResponsibilityId}`, {
-          method: 'PUT',
-          body: JSON.stringify(oPayload)
-        });
-      } else {
-        await fnApiRequest('/api/responsibilities', {
-          method: 'POST',
-          body: JSON.stringify(oPayload)
-        });
+        cResponsibilityForm.reset();
+        oJobsPageState.nEditingResponsibilityId = null;
+        document.getElementById('responsibilitySubmitButton').textContent = 'Save Responsibility';
+        fnShowAlert('responsibilitiesAlert', 'Responsibility saved successfully.');
+        await fnLoadJobsPage();
+      } catch (cError) {
+        fnShowAlert('responsibilitiesAlert', cError.message, 'danger');
       }
+    });
 
-      cResponsibilityForm.reset();
-      oJobsPageState.nEditingResponsibilityId = null;
-      document.getElementById('responsibilitySubmitButton').textContent = 'Save Responsibility';
-      fnShowAlert('responsibilitiesAlert', 'Responsibility saved successfully.');
-      await fnLoadJobsPage();
-    } catch (cError) {
-      fnShowAlert('responsibilitiesAlert', cError.message, 'danger');
-    }
-  });
+    document.getElementById('jobSuggestionButton').addEventListener('click', async () => {
+      await fnOpenSuggestionModal('jobSummary', 'job summary');
+    });
 
-  document.getElementById('jobSuggestionButton').addEventListener('click', async () => {
-    await fnOpenSuggestionModal('jobSummary', 'job summary');
-  });
+    document.getElementById('responsibilitySuggestionButton').addEventListener('click', async () => {
+      await fnOpenSuggestionModal('responsibilityDescription', 'job responsibility');
+    });
 
-  document.getElementById('responsibilitySuggestionButton').addEventListener('click', async () => {
-    await fnOpenSuggestionModal('responsibilityDescription', 'job responsibility');
-  });
+    cJobList.addEventListener('click', async (cEvent) => {
+      const cButton = cEvent.target.closest('button');
 
-  cJobList.addEventListener('click', async (cEvent) => {
-    const cButton = cEvent.target.closest('button');
-
-    if (!cButton) {
-      return;
-    }
-
-    const cAction = cButton.dataset.action;
-
-    if (cAction === 'edit-job') {
-      const nJobId = Number(cButton.dataset.jobId);
-      const oJob = oAppState.aJobs.find((oItem) => oItem.jobId === nJobId);
-
-      if (!oJob) {
+      if (!cButton) {
         return;
       }
 
-      oJobsPageState.nEditingJobId = nJobId;
-      document.getElementById('jobTitle').value = oJob.title;
-      document.getElementById('jobCompany').value = oJob.company;
-      document.getElementById('jobStartDate').value = oJob.startDate;
-      document.getElementById('jobEndDate').value = oJob.endDate === 'Present' ? '' : oJob.endDate;
-      document.getElementById('jobLocation').value = oJob.location || '';
-      document.getElementById('jobSummary').value = oJob.summary || '';
-      document.getElementById('jobSubmitButton').textContent = 'Update Job';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+      const cAction = cButton.dataset.action;
 
-    if (cAction === 'delete-job') {
-      const nJobId = Number(cButton.dataset.jobId);
-      await fnApiRequest(`/api/jobs/${nJobId}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
-      fnShowAlert('jobsAlert', 'Job deleted successfully.');
-      await fnLoadJobsPage();
-    }
+      if (cAction === 'edit-job') {
+        const nJobId = Number(cButton.dataset.jobId);
+        const oJob = oAppState.aJobs.find((oItem) => oItem.jobId === nJobId);
 
-    if (cAction === 'edit-responsibility') {
-      oJobsPageState.nEditingResponsibilityId = Number(cButton.dataset.responsibilityId);
-      document.getElementById('responsibilityJobId').value = cButton.dataset.jobId;
-      const oJob = oAppState.aJobs.find((oItem) => oItem.jobId === Number(cButton.dataset.jobId));
-      const oResponsibility = oJob?.responsibilities?.find((oItem) => oItem.responsibilityId === Number(cButton.dataset.responsibilityId));
-      document.getElementById('responsibilityDescription').value = oResponsibility?.description || '';
-      document.getElementById('responsibilitySubmitButton').textContent = 'Update Responsibility';
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }
+        if (!oJob) {
+          return;
+        }
 
-    if (cAction === 'delete-responsibility') {
-      const nResponsibilityId = Number(cButton.dataset.responsibilityId);
-      await fnApiRequest(`/api/responsibilities/${nResponsibilityId}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
-      fnShowAlert('responsibilitiesAlert', 'Responsibility deleted successfully.');
-      await fnLoadJobsPage();
-    }
-  });
-});
+        oJobsPageState.nEditingJobId = nJobId;
+        document.getElementById('jobTitle').value = oJob.title;
+        document.getElementById('jobCompany').value = oJob.company;
+        document.getElementById('jobStartDate').value = oJob.startDate;
+        document.getElementById('jobEndDate').value = oJob.endDate === 'Present' ? '' : oJob.endDate;
+        document.getElementById('jobLocation').value = oJob.location || '';
+        document.getElementById('jobSummary').value = oJob.summary || '';
+        document.getElementById('jobSubmitButton').textContent = 'Update Job';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      if (cAction === 'delete-job') {
+        const nJobId = Number(cButton.dataset.jobId);
+        await fnApiRequest(`/api/jobs/${nJobId}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
+        fnShowAlert('jobsAlert', 'Job deleted successfully.');
+        await fnLoadJobsPage();
+      }
+
+      if (cAction === 'edit-responsibility') {
+        oJobsPageState.nEditingResponsibilityId = Number(cButton.dataset.responsibilityId);
+        document.getElementById('responsibilityJobId').value = cButton.dataset.jobId;
+        const oJob = oAppState.aJobs.find((oItem) => oItem.jobId === Number(cButton.dataset.jobId));
+        const oResponsibility = oJob?.responsibilities?.find((oItem) => oItem.responsibilityId === Number(cButton.dataset.responsibilityId));
+        document.getElementById('responsibilityDescription').value = oResponsibility?.description || '';
+        document.getElementById('responsibilitySubmitButton').textContent = 'Update Responsibility';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }
+
+      if (cAction === 'delete-responsibility') {
+        const nResponsibilityId = Number(cButton.dataset.responsibilityId);
+        await fnApiRequest(`/api/responsibilities/${nResponsibilityId}?userId=${fnGetCurrentUserId()}`, { method: 'DELETE' });
+        fnShowAlert('responsibilitiesAlert', 'Responsibility deleted successfully.');
+        await fnLoadJobsPage();
+      }
+    });
+
+    window.fnMarkViewInitialized('/jobs');
+  }
+
+  await fnLoadJobsPage();
+};
