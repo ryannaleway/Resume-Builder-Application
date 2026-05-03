@@ -113,18 +113,48 @@ const fnRefreshResumePreview = async () => {
   localStorage.setItem(fnGetUserScopedStorageKey('resumeBuilderPreview'), JSON.stringify(oResume));
 };
 
+const fnSaveResumeHeaderSettings = async () => {
+  const nUserId = fnGetCurrentUserId();
+  const cTargetRole = document.getElementById('resumeTargetRole').value.trim();
+  const cObjective = document.getElementById('resumeObjective').value.trim();
+
+  // Save the title and about/objective independently so users can revise one
+  // field without affecting the other and so the resume model can reuse the
+  // existing settings mechanism that is already user-scoped.
+  await fnApiRequest('/api/settings', {
+    method: 'PUT',
+    body: JSON.stringify({
+      userId: nUserId,
+      settingKey: 'resumeTargetRole',
+      settingValue: cTargetRole || 'Professional Resume'
+    })
+  });
+
+  await fnApiRequest('/api/settings', {
+    method: 'PUT',
+    body: JSON.stringify({
+      userId: nUserId,
+      settingKey: 'resumeObjective',
+      settingValue: cObjective || 'Add a short professional summary tailored to the role you want.'
+    })
+  });
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   fnLoadSelections();
   fnLoadContactMode();
   const cContactModeField = document.getElementById('resumeContactMode');
+  const cTargetRoleField = document.getElementById('resumeTargetRole');
+  const cObjectiveField = document.getElementById('resumeObjective');
   cContactModeField.value = oAppState.cContactMode;
 
-  const [aJobs, aSkillCategories, aSkills, aCertifications, aAwards] = await Promise.all([
+  const [aJobs, aSkillCategories, aSkills, aCertifications, aAwards, aSettings] = await Promise.all([
     fnApiRequest(`/api/jobs?userId=${fnGetCurrentUserId()}`),
     fnApiRequest(`/api/skill-categories?userId=${fnGetCurrentUserId()}`),
     fnApiRequest(`/api/skills?userId=${fnGetCurrentUserId()}`),
     fnApiRequest(`/api/certifications?userId=${fnGetCurrentUserId()}`),
-    fnApiRequest(`/api/awards?userId=${fnGetCurrentUserId()}`)
+    fnApiRequest(`/api/awards?userId=${fnGetCurrentUserId()}`),
+    fnApiRequest(`/api/settings?userId=${fnGetCurrentUserId()}`)
   ]);
 
   oAppState.aJobs = aJobs;
@@ -132,6 +162,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   oAppState.aSkills = aSkills;
   oAppState.aCertifications = aCertifications;
   oAppState.aAwards = aAwards;
+
+  const oResumeTargetRoleSetting = aSettings.find((oItem) => oItem.settingKey === 'resumeTargetRole');
+  const oResumeObjectiveSetting = aSettings.find((oItem) => oItem.settingKey === 'resumeObjective');
+  cTargetRoleField.value = oResumeTargetRoleSetting?.settingValue || '';
+  cObjectiveField.value = oResumeObjectiveSetting?.settingValue || '';
 
   if (
     oAppState.oSelections.aJobIds.length === 0 &&
@@ -161,6 +196,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     oAppState.cContactMode = cEvent.target.value;
     fnPersistContactMode();
     await fnRefreshResumePreview();
+  });
+
+  document.getElementById('saveResumeProfileButton').addEventListener('click', async () => {
+    try {
+      await fnSaveResumeHeaderSettings();
+      fnShowAlert('globalAlert', 'Resume header details saved successfully.');
+      await fnRefreshResumePreview();
+    } catch (cError) {
+      fnShowAlert('globalAlert', cError.message, 'danger');
+    }
   });
 
   document.getElementById('openPreviewButton').addEventListener('click', () => {

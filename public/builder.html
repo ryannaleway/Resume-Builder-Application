@@ -27,6 +27,7 @@
     </nav>
 
     <main class="container-fluid px-3 px-lg-4 py-4">
+      <div id="globalAlert" aria-live="polite"></div>
       <div class="row g-4">
         <div class="col-xl-4 no-print">
           <div class="card border-0 shadow-sm selection-panel">
@@ -45,6 +46,17 @@
                   <option value="phone">Show Phone</option>
                   <option value="both">Show Both</option>
                 </select>
+              </div>
+              <div class="mb-4">
+                <label class="form-label fw-semibold" for="resumeTargetRole">Target Role / Resume Title</label>
+                <input class="form-control" id="resumeTargetRole" aria-label="Resume target role">
+              </div>
+              <div class="mb-4">
+                <label class="form-label fw-semibold" for="resumeObjective">Professional Summary</label>
+                <textarea class="form-control" id="resumeObjective" rows="5" aria-label="Resume professional summary"></textarea>
+              </div>
+              <div class="d-grid mb-4">
+                <button class="btn btn-outline-primary" id="saveResumeProfileButton" type="button">Save Resume Header</button>
               </div>
               <div id="selectionPanel" aria-live="polite"></div>
             </div>

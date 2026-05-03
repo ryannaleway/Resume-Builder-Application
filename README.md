@@ -10,6 +10,7 @@ A full-stack resume builder web application built with Node.js, Express, SQLite,
 - Sign up or sign in with first name, last name, business email, password, and an optional phone number.
 - Allow users to sign in with either email or phone.
 - Allow users to choose in the resume builder whether the header shows email, phone, or both.
+- Save a target role and professional summary at the top of the resume.
 - Keep jobs, skills, certifications, awards, settings, and resume selections scoped to the signed-in account.
 - Select exactly which resume content to include for a tailored resume.
 - Generate a live web preview and a print-friendly resume layout.

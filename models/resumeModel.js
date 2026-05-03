@@ -103,6 +103,11 @@ const fnBuildResumeData = async (cFilters) => {
     FROM resumeProfiles
     ORDER BY resumeProfileId ASC
   `);
+  const aResumeSettings = await fnAll(`
+    SELECT settingKey, settingValue
+    FROM settings
+    WHERE userId = ? AND settingKey IN (?, ?)
+  `, [nUserId, `${nUserId}:resumeTargetRole`, `${nUserId}:resumeObjective`]);
 
   const aJobsWithResponsibilities = aJobs.map((cJob) => {
     return {
@@ -126,10 +131,25 @@ const fnBuildResumeData = async (cFilters) => {
     WHERE userId = ?
   `, [nUserId]) : [];
 
+  const oResumeSettingMap = aResumeSettings.reduce((oAccumulator, cSetting) => {
+    oAccumulator[cSetting.settingKey] = cSetting.settingValue;
+    return oAccumulator;
+  }, {});
+
+  const oBaseProfile = aResumeProfiles[0] || null;
+  const oResolvedProfile = oBaseProfile ? {
+    ...oBaseProfile,
+    targetRole: oResumeSettingMap[`${nUserId}:resumeTargetRole`] || oBaseProfile.targetRole || '',
+    professionalSummary: oResumeSettingMap[`${nUserId}:resumeObjective`] || oBaseProfile.professionalSummary || ''
+  } : {
+    targetRole: oResumeSettingMap[`${nUserId}:resumeTargetRole`] || '',
+    professionalSummary: oResumeSettingMap[`${nUserId}:resumeObjective`] || ''
+  };
+
   return [{
     user: aUsers[0] || null,
     contactMode: cContactMode,
-    profile: aResumeProfiles[0] || null,
+    profile: oResolvedProfile,
     jobs: aJobsWithResponsibilities,
     skillsByCategory: oSkillGroups,
     certifications: aCertifications,
