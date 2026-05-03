@@ -1,7 +1,18 @@
-const fnDownloadResumePdf = (oResume) => {
+const fnDownloadResumePdf = async (oResume) => {
   const { jsPDF } = window.jspdf;
-  const cPdfDocument = new jsPDF();
-  let nVerticalPosition = 20;
+  const cPdfDocument = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'letter'
+  });
+
+  const nPageWidth = cPdfDocument.internal.pageSize.getWidth();
+  const nPageHeight = cPdfDocument.internal.pageSize.getHeight();
+  const nMargin = 12;
+  const nContentWidth = nPageWidth - (nMargin * 2);
+  const nRightColumnWidth = 42;
+  const nLeftColumnWidth = nContentWidth - nRightColumnWidth - 4;
+  let nVerticalPosition = 18;
   const cContactMode = oResume.contactMode || 'email';
   const aContactParts = [];
 
@@ -13,89 +24,167 @@ const fnDownloadResumePdf = (oResume) => {
     aContactParts.push(oResume.user.phone);
   }
 
-  const fnEnsurePageSpace = (nRequiredHeight = 12) => {
-    if (nVerticalPosition + nRequiredHeight > 280) {
+  const fnEnsurePageSpace = (nRequiredHeight = 10) => {
+    if (nVerticalPosition + nRequiredHeight > nPageHeight - nMargin) {
       cPdfDocument.addPage();
-      nVerticalPosition = 20;
+      nVerticalPosition = 18;
     }
   };
 
-  const fnWriteSectionTitle = (cTitle) => {
-    fnEnsurePageSpace(10);
-    cPdfDocument.setFont('helvetica', 'bold');
-    cPdfDocument.setFontSize(14);
-    cPdfDocument.text(cTitle, 14, nVerticalPosition);
-    nVerticalPosition += 8;
+  const fnWriteWrappedText = (cText, nX, nY, nWidth, nFontSize = 10.5, cFontStyle = 'normal', nLineHeight = 5) => {
+    cPdfDocument.setFont('helvetica', cFontStyle);
+    cPdfDocument.setFontSize(nFontSize);
+    const aLines = cPdfDocument.splitTextToSize(cText || '', nWidth);
+    cPdfDocument.text(aLines, nX, nY);
+    return aLines.length * nLineHeight;
   };
 
-  const fnWriteWrappedText = (cText, nIndent = 14) => {
+  const fnWriteSectionTitle = (cTitle) => {
     fnEnsurePageSpace(12);
-    cPdfDocument.setFont('helvetica', 'normal');
-    cPdfDocument.setFontSize(11);
-    const aLines = cPdfDocument.splitTextToSize(cText, 180 - nIndent);
-    fnEnsurePageSpace(aLines.length * 6);
-    cPdfDocument.text(aLines, nIndent, nVerticalPosition);
-    nVerticalPosition += (aLines.length * 6);
+    cPdfDocument.setFont('helvetica', 'bold');
+    cPdfDocument.setFontSize(12);
+    cPdfDocument.text(cTitle.toUpperCase(), nMargin, nVerticalPosition);
+    nVerticalPosition += 2;
+    cPdfDocument.setDrawColor(13, 110, 253);
+    cPdfDocument.setLineWidth(0.5);
+    cPdfDocument.line(nMargin, nVerticalPosition, nPageWidth - nMargin, nVerticalPosition);
+    nVerticalPosition += 6;
+  };
+
+  const fnWriteExperienceBlock = (oJob) => {
+    const cDateLine = `${fnFormatMonth(oJob.startDate)} - ${fnFormatMonth(oJob.endDate)}`;
+    fnEnsurePageSpace(18);
+
+    cPdfDocument.setFont('helvetica', 'bold');
+    cPdfDocument.setFontSize(11.5);
+    const nTitleHeight = fnWriteWrappedText(oJob.title || '', nMargin, nVerticalPosition, nLeftColumnWidth, 11.5, 'bold', 5);
+
+    cPdfDocument.setFont('helvetica', 'italic');
+    cPdfDocument.setFontSize(10);
+    const aDateLines = cPdfDocument.splitTextToSize(cDateLine, nRightColumnWidth);
+    cPdfDocument.text(aDateLines, nPageWidth - nMargin, nVerticalPosition, { align: 'right' });
+
+    nVerticalPosition += Math.max(nTitleHeight, aDateLines.length * 5);
+
+    const cCompanyLine = [oJob.company, oJob.location].filter(Boolean).join(' | ');
+    if (cCompanyLine) {
+      nVerticalPosition += fnWriteWrappedText(cCompanyLine, nMargin, nVerticalPosition, nLeftColumnWidth, 10, 'italic', 4.5);
+    }
+
+    if (oJob.summary) {
+      nVerticalPosition += fnWriteWrappedText(oJob.summary, nMargin, nVerticalPosition + 1, nContentWidth, 10, 'normal', 4.5);
+    }
+
+    (oJob.responsibilities || []).forEach((oResponsibility) => {
+      fnEnsurePageSpace(8);
+      cPdfDocument.setFont('helvetica', 'normal');
+      cPdfDocument.setFontSize(10);
+      cPdfDocument.text('\u2022', nMargin + 1.5, nVerticalPosition);
+      const aBulletLines = cPdfDocument.splitTextToSize(oResponsibility.description || '', nContentWidth - 8);
+      cPdfDocument.text(aBulletLines, nMargin + 6, nVerticalPosition);
+      nVerticalPosition += aBulletLines.length * 4.5;
+    });
+
+    nVerticalPosition += 4;
+  };
+
+  const fnWriteEducationBlock = (oEducationEntry) => {
+    fnEnsurePageSpace(16);
+    const cDateLine = [fnFormatMonth(oEducationEntry.startDate), fnFormatMonth(oEducationEntry.endDate || oEducationEntry.graduationDate)].filter(Boolean).join(' - ');
+    const cProgramLine = [oEducationEntry.degreeName, oEducationEntry.majorName].filter(Boolean).join(' in ');
+
+    const nSchoolHeight = fnWriteWrappedText(oEducationEntry.schoolName || '', nMargin, nVerticalPosition, nLeftColumnWidth, 11, 'bold', 5);
+
+    if (cDateLine) {
+      cPdfDocument.setFont('helvetica', 'italic');
+      cPdfDocument.setFontSize(10);
+      const aDateLines = cPdfDocument.splitTextToSize(cDateLine, nRightColumnWidth);
+      cPdfDocument.text(aDateLines, nPageWidth - nMargin, nVerticalPosition, { align: 'right' });
+      nVerticalPosition += Math.max(nSchoolHeight, aDateLines.length * 5);
+    } else {
+      nVerticalPosition += nSchoolHeight;
+    }
+
+    if (cProgramLine) {
+      nVerticalPosition += fnWriteWrappedText(cProgramLine, nMargin, nVerticalPosition, nLeftColumnWidth, 10, 'italic', 4.5);
+    }
+
+    if (oEducationEntry.location) {
+      nVerticalPosition += fnWriteWrappedText(oEducationEntry.location, nMargin, nVerticalPosition, nLeftColumnWidth, 10, 'normal', 4.5);
+    }
+
+    if (oEducationEntry.notes) {
+      nVerticalPosition += fnWriteWrappedText(oEducationEntry.notes, nMargin, nVerticalPosition + 1, nContentWidth, 10, 'normal', 4.5);
+    }
+
+    nVerticalPosition += 4;
+  };
+
+  const fnWriteSimpleListSection = (cTitle, aLines) => {
+    if (aLines.length === 0) {
+      return;
+    }
+
+    fnWriteSectionTitle(cTitle);
+    aLines.forEach((cLine) => {
+      fnEnsurePageSpace(7);
+      cPdfDocument.setFont('helvetica', 'normal');
+      cPdfDocument.setFontSize(10);
+      cPdfDocument.text('\u2022', nMargin + 1.5, nVerticalPosition);
+      const aWrappedLines = cPdfDocument.splitTextToSize(cLine, nContentWidth - 8);
+      cPdfDocument.text(aWrappedLines, nMargin + 6, nVerticalPosition);
+      nVerticalPosition += aWrappedLines.length * 4.5;
+    });
+    nVerticalPosition += 2;
   };
 
   cPdfDocument.setFont('helvetica', 'bold');
   cPdfDocument.setFontSize(18);
-  cPdfDocument.text(`${oResume.user?.firstName || ''} ${oResume.user?.lastName || ''}`.trim() || 'Resume', 14, nVerticalPosition);
-  nVerticalPosition += 10;
-  fnWriteWrappedText(aContactParts.join(' | ') || oResume.user?.email || oResume.user?.phone || '');
-  nVerticalPosition += 2;
-  cPdfDocument.setFont('helvetica', 'bold');
-  cPdfDocument.setFontSize(14);
-  cPdfDocument.text(oResume.profile?.targetRole || 'Professional Resume', 14, nVerticalPosition);
-  nVerticalPosition += 8;
+  cPdfDocument.text(`${oResume.user?.firstName || ''} ${oResume.user?.lastName || ''}`.trim() || 'Resume', nMargin, nVerticalPosition);
+  nVerticalPosition += 7;
 
-  fnWriteWrappedText(oResume.profile?.professionalSummary || '');
-  nVerticalPosition += 4;
+  if (aContactParts.length > 0) {
+    nVerticalPosition += fnWriteWrappedText(aContactParts.join(' | '), nMargin, nVerticalPosition, nContentWidth, 10, 'normal', 4.5);
+  }
+
+  if (oResume.profile?.targetRole) {
+    nVerticalPosition += fnWriteWrappedText(oResume.profile.targetRole, nMargin, nVerticalPosition + 1, nContentWidth, 12, 'bold', 5);
+  }
+
+  if (oResume.profile?.professionalSummary) {
+    nVerticalPosition += fnWriteWrappedText(oResume.profile.professionalSummary, nMargin, nVerticalPosition + 1, nContentWidth, 10, 'normal', 4.5);
+  }
+
+  nVerticalPosition += 3;
 
   if (oResume.jobs.length > 0) {
     fnWriteSectionTitle('Professional Experience');
     oResume.jobs.forEach((oJob) => {
-      fnWriteWrappedText(`${oJob.title} | ${oJob.company} | ${fnFormatMonth(oJob.startDate)} - ${fnFormatMonth(oJob.endDate)}`);
-      oJob.responsibilities.forEach((oResponsibility) => {
-        fnWriteWrappedText(`- ${oResponsibility.description}`, 20);
-      });
-      nVerticalPosition += 4;
+      fnWriteExperienceBlock(oJob);
     });
   }
 
   if ((oResume.educationEntries || []).length > 0) {
     fnWriteSectionTitle('Education');
     oResume.educationEntries.forEach((oEducationEntry) => {
-      const cProgramLine = [oEducationEntry.degreeName, oEducationEntry.majorName].filter(Boolean).join(' in ');
-      const cDateLine = [fnFormatMonth(oEducationEntry.startDate), fnFormatMonth(oEducationEntry.endDate || oEducationEntry.graduationDate)].filter(Boolean).join(' - ');
-      fnWriteWrappedText([oEducationEntry.schoolName, cProgramLine, cDateLine].filter(Boolean).join(' | '));
-
-      if (oEducationEntry.notes) {
-        fnWriteWrappedText(oEducationEntry.notes, 20);
-      }
+      fnWriteEducationBlock(oEducationEntry);
     });
   }
 
-  if (Object.keys(oResume.skillsByCategory).length > 0) {
-    fnWriteSectionTitle('Skills');
-    Object.entries(oResume.skillsByCategory).forEach(([cCategoryName, aSkills]) => {
-      fnWriteWrappedText(`${cCategoryName}: ${aSkills.map((oSkill) => oSkill.skillName).join(', ')}`);
-    });
-  }
+  const aSkillLines = Object.entries(oResume.skillsByCategory || {}).map(([cCategoryName, aSkills]) => {
+    return `${cCategoryName}: ${aSkills.map((oSkill) => oSkill.skillName).join(', ')}`;
+  });
+  fnWriteSimpleListSection('Skills', aSkillLines);
 
-  if (oResume.certifications.length > 0) {
-    fnWriteSectionTitle('Certifications');
-    oResume.certifications.forEach((oCertification) => {
-      fnWriteWrappedText(`${oCertification.certificationName} | ${oCertification.issuingOrganization}`);
-    });
-  }
+  const aCertificationLines = (oResume.certifications || []).map((oCertification) => {
+    return [oCertification.certificationName, oCertification.issuingOrganization].filter(Boolean).join(' | ');
+  });
+  fnWriteSimpleListSection('Certifications', aCertificationLines);
 
-  if (oResume.awards.length > 0) {
-    fnWriteSectionTitle('Awards');
-    oResume.awards.forEach((oAward) => {
-      fnWriteWrappedText(`${oAward.awardName} | ${oAward.issuingOrganization}`);
-    });
-  }
+  const aAwardLines = (oResume.awards || []).map((oAward) => {
+    return [oAward.awardName, oAward.issuingOrganization].filter(Boolean).join(' | ');
+  });
+  fnWriteSimpleListSection('Awards', aAwardLines);
 
   cPdfDocument.save('resume.pdf');
 };
@@ -117,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.print();
   });
 
-  document.getElementById('downloadPdfButton').addEventListener('click', () => {
-    fnDownloadResumePdf(oResume);
+  document.getElementById('downloadPdfButton').addEventListener('click', async () => {
+    await fnDownloadResumePdf(oResume);
   });
 });
